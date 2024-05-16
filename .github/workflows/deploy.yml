@@ -1,0 +1,208 @@
+name: 🚀 Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  lint:
+    name: ⬣ ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v4
+        with:
+          cache: npm
+          cache-dependency-path: ./package.json
+          node-version: 18
+
+      - name: 📥 Install deps
+        run: npm install
+
+      - name: 🔬 Lint
+        run: npm run lint
+
+  typecheck:
+    name: ʦ TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v4
+        with:
+          cache: npm
+          cache-dependency-path: ./package.json
+          node-version: 18
+
+      - name: 📥 Install deps
+        run: npm install
+
+      - name: 🔎 Type check
+        run: npm run typecheck --if-present
+
+  vitest:
+    name: ⚡ Vitest
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v4
+        with:
+          cache: npm
+          cache-dependency-path: ./package.json
+          node-version: 18
+
+      - name: 📥 Install deps
+        run: npm install
+
+      - name: ⚡ Run vitest
+        run: npm run test -- --coverage
+
+  cypress:
+    name: ⚫️ Cypress
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: 🏄 Copy test env vars
+        run: cp .env.example .env
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v4
+        with:
+          cache: npm
+          cache-dependency-path: ./package.json
+          node-version: 18
+
+      - name: 📥 Install deps
+        run: npm install
+
+      - name: 🐳 Docker compose
+        # the sleep is just there to give time for postgres to get started
+        run: docker compose -f ./other/docker-compose-postgres.yml up -d && sleep 3
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
+
+      - name: 🛠 Setup Database
+        run: npx prisma migrate reset --force
+
+      - name: ⚙️ Build
+        run: npm run build
+
+      - name: 🌳 Cypress run
+        uses: cypress-io/github-action@v6
+        with:
+          start: npm run start:mocks
+          wait-on: http://localhost:8811
+        env:
+          PORT: 8811
+
+  deploy:
+    name: 🚀 Deploy
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, vitest, cypress]
+    # set the environment variable to the branch name
+    # for environment variables and secrets
+    environment:
+      name: ${{ github.ref_name }}
+    # only deploy main/dev branch on pushes
+    if: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && github.event_name == 'push' }}
+
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: 🏄 Build env vars file
+        env:
+          APP_PORT: ${{ vars.APP_PORT }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+        run: |
+          echo "DATABASE_URL=$DATABASE_URL" >> .env
+          echo "APP_PORT=$APP_PORT" >> .env
+          echo "SESSION_SECRET=$SESSION_SECRET" >> .env
+          cat .env
+
+      - name: 🚚 Move Dockerfile
+        run: |
+          mv ./other/Dockerfile ./Dockerfile
+          mv ./other/.dockerignore ./.dockerignore
+          mv ./other/docker-compose.yml ./docker-compose.yml
+
+      - name: 🚫 Stopping app
+        uses: appleboy/ssh-action@v1.0.0
+        env:
+          APP_DIR: ${{ vars.APP_DIR }}
+          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+        with:
+          host: ${{secrets.SSH_HOST}}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          envs: APP_DIR, SSH_USERNAME
+          script: |
+            [[ -e $APP_DIR ]] && docker compose --env-file $APP_DIR/.env -f $APP_DIR/docker-compose.yml down || echo "APP_DIR not defined" 
+            [[ -e $APP_DIR ]] && rm -rf $APP_DIR/* || echo "APP_DIR not defined"
+            [[ -e $APP_DIR ]] && echo "APP_DIR already exists" || (sudo mkdir -p $APP_DIR ; sudo chown -R $SSH_USERNAME:$SSH_USERNAME $APP_DIR)
+
+      - name: 📁 Copy file via ssh
+        uses: appleboy/scp-action@v0.1.3
+        with:
+          host: ${{secrets.SSH_HOST}}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "./,!.git"
+          target: ${{ vars.APP_DIR }}
+
+      - name: 🌐 Setup server
+        uses: appleboy/ssh-action@v1.0.0
+        env:
+          APP_DIR: ${{ vars.APP_DIR }}
+          APP_PORT: ${{ vars.APP_PORT }}
+          APP_DOMAIN: ${{ vars.APP_DOMAIN }}
+          APP_DOMAIN_ADMIN_EMAIL: ${{ vars.APP_DOMAIN_ADMIN_EMAIL }}
+        with:
+          host: ${{secrets.SSH_HOST}}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          envs: APP_DIR, APP_PORT, APP_DOMAIN, APP_DOMAIN_ADMIN_EMAIL
+          script: |
+            bash <(curl -sL https://gist.githubusercontent.com/fenny-mdg/cca4a22afda58d96a71bef22599539bc/raw/docker-engine-installer.sh)
+            echo "Docker setup ✅"
+            [[ -z $APP_DOMAIN ]] && echo "No app domain provided do not install and setup apache" || (bash <(curl -sL https://gist.githubusercontent.com/fenny-mdg/2228c137e1a4f8c9e79e2595f637e7d2/raw/apache2-installer-ubuntu.sh); echo "Apache2 setup ✅";)
+            ([[ -z $APP_DOMAIN ]] || [[ -e /etc/apache2/sites-available/$APP_DOMAIN.conf ]]) && echo "Config already set ✅" || (bash <(curl -sL https://gist.githubusercontent.com/fenny-mdg/0960edcc9b8f14273d7503ae0af5b2a0/raw/c2d2a0661b047326b8975d493dd5fbee457e3af1/apache2-conf-creator.sh) --domain_name $APP_DOMAIN --email_admin $APP_DOMAIN_ADMIN_EMAIL --port $APP_PORT)
+
+      - name: 🚀 Deploy
+        uses: appleboy/ssh-action@v1.0.0
+        env:
+          APP_DIR: ${{ vars.APP_DIR }}
+        with:
+          host: ${{secrets.SSH_HOST}}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          envs: APP_DIR
+          script: |
+            docker compose --env-file $APP_DIR/.env -f $APP_DIR/docker-compose.yml up --build -d
+            echo "Build success"

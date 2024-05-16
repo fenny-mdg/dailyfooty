@@ -1,0 +1,11 @@
+version: "3.8"
+services:
+  paramed:
+    build:
+      context: .
+      args:
+        - DATABASE_URL=${DATABASE_URL}
+        - SESSION_SECRET=${SESSION_SECRET}
+    restart: always
+    ports:
+      - ${APP_PORT}:3000
