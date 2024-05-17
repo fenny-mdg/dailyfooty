@@ -1,34 +1,31 @@
-import { PrismaClient } from "@prisma/client";
+import { MongoClient } from "mongodb";
 import invariant from "tiny-invariant";
 
 import { singleton } from "./singleton.server.ts";
 
 // Hard-code a unique key, so we can look up the client when this module gets re-imported
-const prisma = singleton("prisma", getPrismaClient);
+const database = singleton("mongo", getDatabase);
 
-function getPrismaClient() {
+async function getDatabase() {
   const { DATABASE_URL } = process.env;
 
   invariant(typeof DATABASE_URL === "string", "DATABASE_URL env var not set");
 
   const databaseUrl = new URL(DATABASE_URL);
 
-  console.log(`🔌 setting up prisma client to ${databaseUrl.host}`);
-  // NOTE: during development if you change anything in this function, remember
-  // that this only runs once per server restart and won't automatically be
-  // re-run per request like everything else is. So if you need to change
-  // something in this file, you'll need to manually restart the server.
-  const client = new PrismaClient({
-    datasources: {
-      db: {
-        url: databaseUrl.toString(),
-      },
-    },
-  });
-  // connect eagerly
-  client.$connect();
+  console.log(`🔌 setting up mongo client to ${databaseUrl.host}`);
 
-  return client;
+  // const dbName = DATABASE_URL.split("/").pop();
+  const client = new MongoClient(DATABASE_URL);
+  let conn;
+  try {
+    conn = await client.connect();
+  } catch (e) {
+    console.error(e);
+  }
+  const db = conn?.db("mercato");
+
+  return db;
 }
 
-export { prisma };
+export default await database;
