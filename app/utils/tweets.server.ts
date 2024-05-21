@@ -1,3 +1,5 @@
+import { ObjectId } from "mongodb";
+
 import db from "~/utils/db.server.ts";
 
 type TweetFilter = {
@@ -39,4 +41,10 @@ export const getLatestTweets = async () => {
   return tweetCollection
     ?.find({ tweetImage: { $ne: null } }, { limit: 5, sort: { tweetDate: -1 } })
     .toArray();
+};
+
+export const getTweet = (id: string) => {
+  const tweetCollection = db?.collection("tweets");
+
+  return tweetCollection?.findOne({ _id: new ObjectId(id) });
 };

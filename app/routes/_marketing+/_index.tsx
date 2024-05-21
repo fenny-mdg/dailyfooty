@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
-import { json, useLoaderData } from "@remix-run/react";
+import { json, Link, useLoaderData } from "@remix-run/react";
 import { ColumnDef } from "@tanstack/react-table";
 import Autoplay from "embla-carousel-autoplay";
 
@@ -10,7 +10,7 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel.tsx";
 import DataCardList from "@/components/ui/data-card-list.tsx";
-import { SiteHeader } from "~/components/site-header.tsx";
+// import { SiteHeader } from "~/components/site-header.tsx";
 import {
   countTweets,
   getLatestTweets,
@@ -44,13 +44,17 @@ export default function Index() {
         return row;
       },
       cell: (props) => {
-        const tweet = props.getValue();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { tweetImage, tweetText } = tweet as any;
+        const tweet = props.getValue() as any;
+        const { tweetImage, tweetText } = tweet;
         const [title, description] = tweetText.split("\n").filter(Boolean);
         return (
           <Card className="group">
-            <CardContent className="flex gap-4 pt-8 max-lg:flex-col">
+            <CardContent className="flex gap-4 pt-8 max-lg:flex-col relative">
+              <Link
+                to={`/thread/${tweet._id}`}
+                className="absolute inset-0 w-full h-full z-10 cursor-pointer"
+              />
               <img
                 src={tweetImage}
                 alt="tweet"
@@ -70,7 +74,6 @@ export default function Index() {
 
   return (
     <div>
-      <SiteHeader />
       <Carousel
         plugins={[
           Autoplay({
@@ -81,6 +84,10 @@ export default function Index() {
         <CarouselContent>
           {latestTweets?.map((tweet) => (
             <CarouselItem key={tweet._id} className="relative">
+              <Link
+                to={`/thread/${tweet._id}`}
+                className="absolute inset-0 w-full h-full z-10 cursor-pointer"
+              />
               <div className="absolute inset-0 bg-black bg-opacity-50 flex items-end justify-center pb-8">
                 <h3 className="text-2xl w-[90%] lg:w-[50%] text-center text-white">
                   {tweet.tweetText}
