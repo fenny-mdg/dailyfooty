@@ -11,19 +11,21 @@ async function getDatabase() {
 
   invariant(typeof DATABASE_URL === "string", "DATABASE_URL env var not set");
 
-  const databaseUrl = new URL(DATABASE_URL);
+  const splittedDatabaseUrl = DATABASE_URL?.split("/");
+  const databaseName = splittedDatabaseUrl?.pop();
+  const databaseConnectionString = splittedDatabaseUrl?.join("/");
+  const databaseUrl = new URL(databaseConnectionString);
 
   console.log(`🔌 setting up mongo client to ${databaseUrl.host}`);
 
-  // const dbName = DATABASE_URL.split("/").pop();
-  const client = new MongoClient(DATABASE_URL);
+  const client = new MongoClient(databaseConnectionString);
   let conn;
   try {
     conn = await client.connect();
   } catch (e) {
     console.error(e);
   }
-  const db = conn?.db("mercato");
+  const db = conn?.db(databaseName);
 
   return db;
 }
