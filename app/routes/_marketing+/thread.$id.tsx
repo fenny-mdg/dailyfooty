@@ -30,9 +30,7 @@ export default function ThreadDetail() {
           <div className="flex flex-col gap-8 px-4 lg:p-0  break-words">
             <img src={tweetImage} alt="" />
             <h1 className="text-xl font-medium">{title}</h1>
-            {content.map((c: string) => (
-              <p key={c}>{c}</p>
-            ))}
+            <p className="whitespace-pre-wrap">{content.join("\n")}</p>
             <div className="px-4 md:px-8 lg:px-24">
               <XEmbed url={link} />
             </div>

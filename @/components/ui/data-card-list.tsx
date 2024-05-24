@@ -15,7 +15,8 @@ export default function DataCardList<TData, TValue>({
   data,
   totalCount,
   paginationOptions,
-}: DataTableProps<TData, TValue>) {
+  className,
+}: DataTableProps<TData, TValue> & { className?: string }) {
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: paginationOptions?.pageIndex
       ? paginationOptions?.pageIndex - 1
@@ -45,17 +46,18 @@ export default function DataCardList<TData, TValue>({
   }, [paginationOptions]);
 
   return (
-    <div className="gap-4 flex flex-col">
+    <div className={className}>
       {table.getRowModel().rows?.length ? (
-        table.getRowModel().rows.map((row) => (
-          <div key={row.id}>
-            {row.getVisibleCells().map((cell) => (
-              <div key={cell.id}>
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </div>
-            ))}
-          </div>
-        ))
+        table.getRowModel().rows.map(
+          (row) =>
+            // <div key={row.id}>
+            row
+              .getVisibleCells()
+              .map((cell) =>
+                flexRender(cell.column.columnDef.cell, cell.getContext()),
+              ),
+          // </div>
+        )
       ) : (
         <div>
           <div className="h-24 text-center">No results.</div>
