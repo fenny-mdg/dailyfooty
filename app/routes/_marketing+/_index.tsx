@@ -10,14 +10,14 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel.tsx";
 import DataCardList from "@/components/ui/data-card-list.tsx";
-// import { SiteHeader } from "~/components/site-header.tsx";
+import { getRelativeDateFromNow } from "~/utils/date-time.ts";
 import {
   countTweets,
   getLatestTweets,
   getTweets,
 } from "~/utils/tweets.server.ts";
 
-export const meta: MetaFunction = () => [{ title: "Remix Notes" }];
+export const meta: MetaFunction = () => [{ title: "Daily footy" }];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
@@ -46,23 +46,28 @@ export default function Index() {
       cell: (props) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tweet = props.getValue() as any;
-        const { tweetImage, tweetText } = tweet;
-        const [title, description] = tweetText.split("\n").filter(Boolean);
+        const { tweetImage, tweetText, tweetDate, createdAt } = tweet;
+        console.log(tweetDate, typeof createdAt);
+        const [title] = tweetText.split("\n").filter(Boolean);
         return (
-          <Card className="group">
+          <Card className="group w-full group">
             <CardContent className="flex gap-4 pt-8 max-lg:flex-col relative">
               <Link
                 to={`/thread/${tweet._id}`}
                 className="absolute inset-0 w-full h-full z-10 cursor-pointer"
               />
-              <img
-                src={tweetImage}
-                alt="tweet"
-                className="w-full h-48 lg:w-48 lg:h-24 flex-shrink-0 object-cover rounded"
-              />
-              <div>
+              <div className="w-full h-48 lg:w-52 lg:h-32 flex-shrink-0 overflow-hidden rounded">
+                <img
+                  src={tweetImage}
+                  alt="tweet"
+                  className="w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+              </div>
+              <div className="flex flex-col justify-between">
                 <h3 className="text-lg font-medium mb-4">{title}</h3>
-                <p className="text-sm">{description}</p>
+                <p className="text-sm text-gray-500">
+                  {getRelativeDateFromNow(tweetDate || createdAt)}
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -83,21 +88,25 @@ export default function Index() {
       >
         <CarouselContent>
           {latestTweets?.map((tweet) => (
-            <CarouselItem key={tweet._id} className="relative">
+            <CarouselItem
+              key={tweet._id}
+              className="relative flex justify-center"
+            >
               <Link
                 to={`/thread/${tweet._id}`}
                 className="absolute inset-0 w-full h-full z-10 cursor-pointer"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-end justify-center pb-8">
-                <h3 className="text-2xl w-[90%] lg:w-[50%] text-center text-white">
+              <div className="relative w-fit">
+                <img
+                  src={tweet.tweetImage}
+                  alt="tweet"
+                  className="w-full h-[600px] flex-shrink-0 flex-grow-0 object-cover lg:object-contain"
+                />
+                <h3 className="absolute bottom-5 text-xl text-white self-center left-0 right-0 mx-4 md:mx-10 md:text-2xl lg:text-3xl z-20 text-center">
                   {tweet.tweetText}
                 </h3>
               </div>
-              <img
-                src={tweet.tweetImage}
-                alt="tweet"
-                className="w-full h-[600px] flex-shrink-0 flex-grow-0 object-cover lg:object-contain"
-              />
+              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-end justify-center pb-8"></div>
             </CarouselItem>
           ))}
         </CarouselContent>
@@ -107,13 +116,14 @@ export default function Index() {
         <div className="flex w-full justify-center">
           <div className="w-full  lg:w-[80%] flex  flex-col lg:flex-row gap-8">
             <div className="flex lg:w-2/3">
-              <div className="flex flex-col gap-4 ">
+              <div className="w-full">
                 <DataCardList
                   paginationOptions={{ pageIndex: page, pageSize: size }}
                   // @ts-expect-error - I'm not sure what the correct type is here
                   data={tweets}
                   columns={columns}
                   totalCount={total}
+                  className="gap-4 flex flex-col w-full"
                 />
               </div>
             </div>

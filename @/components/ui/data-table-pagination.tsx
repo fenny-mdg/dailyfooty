@@ -65,20 +65,23 @@ export default function DataTablePagination<TData>({
             })}
           />
         </PaginationItem>
-        {paginationLabels.map((label, index) => (
-          <PaginationItem key={`${label}${index}`} className="cursor-pointer">
-            {label === "..." ? (
-              <PaginationEllipsis />
-            ) : (
-              <PaginationLink
-                onClick={() => handleGoToPage(label)}
-                isActive={`${page}` === label}
-              >
-                {label}
-              </PaginationLink>
-            )}
-          </PaginationItem>
-        ))}
+        <div className="flex gap-2  flex-wrap 
+        ">
+          {paginationLabels.map((label, index) => (
+            <PaginationItem key={`${label}${index}`} className="cursor-pointer">
+              {label === "..." ? (
+                <PaginationEllipsis />
+              ) : (
+                <PaginationLink
+                  onClick={() => handleGoToPage(label)}
+                  isActive={`${page}` === label}
+                >
+                  {label}
+                </PaginationLink>
+              )}
+            </PaginationItem>
+          ))}
+        </div>
 
         <PaginationItem>
           <PaginationNext
