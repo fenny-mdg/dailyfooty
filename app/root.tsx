@@ -12,7 +12,6 @@ import { ThemeProvider } from "next-themes";
 
 import stylesheet from "~/tailwind.css";
 
-console.log(cssBundleHref);
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
   ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
