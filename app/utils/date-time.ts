@@ -33,3 +33,20 @@ export const getRelativeDateFromNow = (date: string, locale = "en"): string => {
 
   return relativeTimeFormat.format(-Math.round(diff.value), diff.unit);
 };
+
+export const formatFixtureDate = (date: number) => {
+  const dateStr = `${date}`;
+  const splittedDate = dateStr.split("");
+  const month = splittedDate.slice(4, 6).join("");
+  const day = splittedDate.slice(6, 8).join("");
+
+  return `${day}/${month}`;
+};
+
+export const splitDate = (date: Date = new Date()) => {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDate();
+
+  return [year, month, day];
+};

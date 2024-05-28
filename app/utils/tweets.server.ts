@@ -35,7 +35,7 @@ export const countTweets = () => {
   return tweetCollection?.countDocuments();
 };
 
-export const getLatestTweets = async () => {
+export const getLatestTweets = () => {
   const tweetCollection = db?.collection("tweets");
 
   return tweetCollection
