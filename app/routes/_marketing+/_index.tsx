@@ -10,7 +10,20 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel.tsx";
 import DataCardList from "@/components/ui/data-card-list.tsx";
-import { getRelativeDateFromNow } from "~/utils/date-time.ts";
+import {
+  FixtureCard,
+  FixtureCardStatus,
+  FixtureCardTeam,
+  FixtureCardTeams,
+} from "@/components/ui/fixture-card.tsx";
+import {
+  formatFixtureDate,
+  getRelativeDateFromNow,
+} from "~/utils/date-time.ts";
+import {
+  getLatestResults,
+  getUpcomingFixtures,
+} from "~/utils/fixture.server.ts";
 import {
   countTweets,
   getLatestTweets,
@@ -18,24 +31,45 @@ import {
 } from "~/utils/tweets.server.ts";
 
 export const meta: MetaFunction = () => [{ title: "Daily footy" }];
-
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const searchParams = url.searchParams;
   const page = parseInt(searchParams.get("page") ?? "1");
   const size = parseInt(searchParams.get("size") ?? "10");
-  const [tweets, total, latestTweets] = await Promise.all([
-    getTweets({ direction: "desc", sortBy: "tweetDate", page, size }),
-    countTweets(),
-    getLatestTweets(),
-  ]);
+  const [tweets, total, latestTweets, upcomingFixtures, latestResults] =
+    await Promise.all([
+      getTweets({ direction: "desc", sortBy: "tweetDate", page, size }),
+      countTweets(),
+      getLatestTweets(),
+      getUpcomingFixtures(),
+      getLatestResults(),
+    ]);
 
-  return json({ tweets, total, page, size, latestTweets });
+  return json({
+    tweets,
+    total,
+    page,
+    size,
+    latestTweets,
+    upcomingFixtures,
+    latestResults,
+  });
 };
 
+const teamBadgeBaseUrl = "https://lsm-static-prod.livescore.com/medium";
+
 export default function Index() {
-  const { tweets, total, page, size, latestTweets } =
-    useLoaderData<typeof loader>();
+  const {
+    tweets,
+    total,
+    page,
+    size,
+    latestTweets,
+    upcomingFixtures,
+    latestResults,
+  } = useLoaderData<typeof loader>();
+  const upcomingFixturesToShow = upcomingFixtures.slice(0, 6);
+  const latestResultsToShow = latestResults.slice(0, 6);
   const columns: ColumnDef<
     { tweetImage: string; tweetDate: string; tweetText: string }[]
   >[] = [
@@ -47,7 +81,6 @@ export default function Index() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tweet = props.getValue() as any;
         const { tweetImage, tweetText, tweetDate, createdAt } = tweet;
-        console.log(tweetDate, typeof createdAt);
         const [title] = tweetText.split("\n").filter(Boolean);
         return (
           <Card className="group w-full group">
@@ -114,7 +147,7 @@ export default function Index() {
 
       <main className="relative min-h-screen flex py-8">
         <div className="flex w-full justify-center">
-          <div className="w-full  lg:w-[80%] flex  flex-col lg:flex-row gap-8">
+          <div className="w-full  lg:w-[80%] flex  flex-col lg:flex-row gap-8 px-4 lg:px-0">
             <div className="flex lg:w-2/3">
               <div className="w-full">
                 <DataCardList
@@ -132,13 +165,61 @@ export default function Index() {
                 <CardHeader className="uppercase font-medium">
                   Upcoming matches
                 </CardHeader>
-                <CardContent className="h-48"></CardContent>
+                <CardContent className="flex flex-col gap-4">
+                  {upcomingFixturesToShow.map((fixture) => (
+                    <>
+                      <FixtureCard key={fixture.id}>
+                        <FixtureCardStatus>
+                          {fixture.status === "NS"
+                            ? formatFixtureDate(fixture.startDate)
+                            : fixture.status}
+                        </FixtureCardStatus>
+                        <FixtureCardTeams>
+                          <FixtureCardTeam
+                            baseUrl={teamBadgeBaseUrl}
+                            team={fixture.homeTeam}
+                            score={fixture.score[0]}
+                          />
+                          <FixtureCardTeam
+                            baseUrl={teamBadgeBaseUrl}
+                            team={fixture.awayTeam}
+                            score={fixture.score[1]}
+                          />
+                        </FixtureCardTeams>
+                      </FixtureCard>
+                    </>
+                  ))}
+                </CardContent>
               </Card>
               <Card>
                 <CardHeader className="uppercase font-medium">
                   Match results
                 </CardHeader>
-                <CardContent className="h-48"></CardContent>
+                <CardContent className="flex flex-col gap-4">
+                  {latestResultsToShow.map((fixture) => (
+                    <>
+                      <FixtureCard key={fixture.id}>
+                        <FixtureCardStatus>
+                          {fixture.status === "NS"
+                            ? formatFixtureDate(fixture.startDate)
+                            : fixture.status}
+                        </FixtureCardStatus>
+                        <FixtureCardTeams>
+                          <FixtureCardTeam
+                            baseUrl={teamBadgeBaseUrl}
+                            team={fixture.homeTeam}
+                            score={fixture.score[0]}
+                          />
+                          <FixtureCardTeam
+                            baseUrl={teamBadgeBaseUrl}
+                            team={fixture.awayTeam}
+                            score={fixture.score[1]}
+                          />
+                        </FixtureCardTeams>
+                      </FixtureCard>
+                    </>
+                  ))}
+                </CardContent>
               </Card>
             </div>
           </div>
