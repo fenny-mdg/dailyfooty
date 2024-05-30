@@ -17,16 +17,15 @@ const FixtureCardTeams = ({
 const FixtureCardTeam = ({
   team,
   score,
-  baseUrl,
 }: {
   baseUrl?: string;
-  score: string;
+  score?: string;
   team: { img: string; name: string; abbreviation: string };
 }) => (
   <div className="flex justify-between items-center">
     <div className="flex gap-4 items-center">
       <img
-        src={baseUrl ? `${baseUrl}/${team.img}` : team.img}
+        src={`/media/${team.img}`}
         alt={team.abbreviation}
         className="w-6"
       />

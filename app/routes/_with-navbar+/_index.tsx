@@ -2,24 +2,23 @@ import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { json, Link, useLoaderData } from "@remix-run/react";
 import { ColumnDef } from "@tanstack/react-table";
 import Autoplay from "embla-carousel-autoplay";
+import { ChevronRight } from "lucide-react";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card.tsx";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card.tsx";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel.tsx";
+import { Container } from "@/components/ui/container.tsx";
 import DataCardList from "@/components/ui/data-card-list.tsx";
-import {
-  FixtureCard,
-  FixtureCardStatus,
-  FixtureCardTeam,
-  FixtureCardTeams,
-} from "@/components/ui/fixture-card.tsx";
-import {
-  formatFixtureDate,
-  getRelativeDateFromNow,
-} from "~/utils/date-time.ts";
+import { FixtureList } from "@/components/ui/fixture-list.tsx";
+import { getRelativeDateFromNow } from "~/utils/date-time.ts";
 import {
   getLatestResults,
   getUpcomingFixtures,
@@ -55,8 +54,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     latestResults,
   });
 };
-
-const teamBadgeBaseUrl = "https://lsm-static-prod.livescore.com/medium";
 
 export default function Index() {
   const {
@@ -144,87 +141,56 @@ export default function Index() {
           ))}
         </CarouselContent>
       </Carousel>
-
-      <main className="relative min-h-screen flex py-8">
-        <div className="flex w-full justify-center">
-          <div className="w-full  lg:w-[80%] flex  flex-col lg:flex-row gap-8 px-4 lg:px-0">
-            <div className="flex lg:w-2/3">
-              <div className="w-full">
-                <DataCardList
-                  paginationOptions={{ pageIndex: page, pageSize: size }}
-                  // @ts-expect-error - I'm not sure what the correct type is here
-                  data={tweets}
-                  columns={columns}
-                  totalCount={total}
-                  className="gap-4 flex flex-col w-full"
-                />
-              </div>
-            </div>
-            <div className="w-full lg:w-1/3 h-96 flex flex-col gap-8">
-              <Card>
-                <CardHeader className="uppercase font-medium">
-                  Upcoming matches
-                </CardHeader>
-                <CardContent className="flex flex-col gap-4">
-                  {upcomingFixturesToShow.map((fixture) => (
-                    <>
-                      <FixtureCard key={fixture.id}>
-                        <FixtureCardStatus>
-                          {fixture.status === "NS"
-                            ? formatFixtureDate(fixture.startDate)
-                            : fixture.status}
-                        </FixtureCardStatus>
-                        <FixtureCardTeams>
-                          <FixtureCardTeam
-                            baseUrl={teamBadgeBaseUrl}
-                            team={fixture.homeTeam}
-                            score={fixture.score[0]}
-                          />
-                          <FixtureCardTeam
-                            baseUrl={teamBadgeBaseUrl}
-                            team={fixture.awayTeam}
-                            score={fixture.score[1]}
-                          />
-                        </FixtureCardTeams>
-                      </FixtureCard>
-                    </>
-                  ))}
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="uppercase font-medium">
-                  Match results
-                </CardHeader>
-                <CardContent className="flex flex-col gap-4">
-                  {latestResultsToShow.map((fixture) => (
-                    <>
-                      <FixtureCard key={fixture.id}>
-                        <FixtureCardStatus>
-                          {fixture.status === "NS"
-                            ? formatFixtureDate(fixture.startDate)
-                            : fixture.status}
-                        </FixtureCardStatus>
-                        <FixtureCardTeams>
-                          <FixtureCardTeam
-                            baseUrl={teamBadgeBaseUrl}
-                            team={fixture.homeTeam}
-                            score={fixture.score[0]}
-                          />
-                          <FixtureCardTeam
-                            baseUrl={teamBadgeBaseUrl}
-                            team={fixture.awayTeam}
-                            score={fixture.score[1]}
-                          />
-                        </FixtureCardTeams>
-                      </FixtureCard>
-                    </>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
+      <Container>
+        <div className="flex lg:w-2/3">
+          <div className="w-full">
+            <DataCardList
+              paginationOptions={{ pageIndex: page, pageSize: size }}
+              // @ts-expect-error - I'm not sure what the correct type is here
+              data={tweets}
+              columns={columns}
+              totalCount={total}
+              className="gap-4 flex flex-col w-full"
+            />
           </div>
         </div>
-      </main>
+        <div className="w-full lg:w-1/3 h-96 flex flex-col gap-8">
+          <Card>
+            <CardHeader className="uppercase font-medium">
+              Upcoming matches
+            </CardHeader>
+            <CardContent>
+              <FixtureList fixtures={upcomingFixturesToShow} />
+            </CardContent>
+            <CardFooter className="justify-end">
+              <Link
+                prefetch="intent"
+                to="./fixtures"
+                className="flex gap-2 uppercase hover:underline"
+              >
+                <p>View more</p> <ChevronRight />
+              </Link>
+            </CardFooter>
+          </Card>
+          <Card>
+            <CardHeader className="uppercase font-medium">
+              Match results
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              <FixtureList fixtures={latestResultsToShow} />
+            </CardContent>
+            <CardFooter className="justify-end">
+              <Link
+                prefetch="intent"
+                to="./fixtures"
+                className="flex gap-2 uppercase hover:underline"
+              >
+                <p>View more</p> <ChevronRight />
+              </Link>
+            </CardFooter>
+          </Card>
+        </div>
+      </Container>
     </div>
   );
 }
