@@ -61,3 +61,5 @@ export function generatePagination({
 
   return paginationLabels;
 }
+
+export const teamBadgeBaseUrl = "https://lsm-static-prod.livescore.com/medium";

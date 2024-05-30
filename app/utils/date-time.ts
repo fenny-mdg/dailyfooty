@@ -33,3 +33,54 @@ export const getRelativeDateFromNow = (date: string, locale = "en"): string => {
 
   return relativeTimeFormat.format(-Math.round(diff.value), diff.unit);
 };
+
+export const formatFixtureDate = (date: number) => {
+  const dateStr = `${date}`;
+  const splittedDate = dateStr.split("");
+  const month = splittedDate.slice(4, 6).join("");
+  const day = splittedDate.slice(6, 8).join("");
+
+  return `${day}/${month}`;
+};
+
+export const splitDate = (date: Date = new Date()) => {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDate();
+
+  return [year, month, day];
+};
+
+export const dateAdd = (
+  date: Date,
+  quantity: number,
+  unit: "day" | "month" | "year",
+) => {
+  let [year, month, day] = splitDate(date);
+
+  switch (unit.toLowerCase()) {
+    case "day":
+      day += quantity;
+      break;
+    case "month":
+      month += quantity;
+      break;
+    case "year":
+      year += quantity;
+      break;
+
+    default:
+      throw new Error("unit not supported");
+  }
+
+  return new Date(year, month, day);
+};
+
+export const toZeroUTC = (date: Date = new Date()) => {
+  const timezoneHour = -(date.getTimezoneOffset() / 60);
+  const timezoneMinute = -(date.getTimezoneOffset() % 60);
+  const [year, month, day] = splitDate(date);
+
+  // We want that date has 00:00:00 as time
+  return new Date(year, month, day, timezoneHour, timezoneMinute, 0, 0);
+};

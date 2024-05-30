@@ -2,15 +2,27 @@ import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { json, Link, useLoaderData } from "@remix-run/react";
 import { ColumnDef } from "@tanstack/react-table";
 import Autoplay from "embla-carousel-autoplay";
+import { ChevronRight } from "lucide-react";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card.tsx";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card.tsx";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel.tsx";
+import { Container } from "@/components/ui/container.tsx";
 import DataCardList from "@/components/ui/data-card-list.tsx";
+import { FixtureList } from "@/components/ui/fixture-list.tsx";
 import { getRelativeDateFromNow } from "~/utils/date-time.ts";
+import {
+  getLatestResults,
+  getUpcomingFixtures,
+} from "~/utils/fixture.server.ts";
 import {
   countTweets,
   getLatestTweets,
@@ -18,24 +30,43 @@ import {
 } from "~/utils/tweets.server.ts";
 
 export const meta: MetaFunction = () => [{ title: "Daily footy" }];
-
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const searchParams = url.searchParams;
   const page = parseInt(searchParams.get("page") ?? "1");
   const size = parseInt(searchParams.get("size") ?? "10");
-  const [tweets, total, latestTweets] = await Promise.all([
-    getTweets({ direction: "desc", sortBy: "tweetDate", page, size }),
-    countTweets(),
-    getLatestTweets(),
-  ]);
+  const [tweets, total, latestTweets, upcomingFixtures, latestResults] =
+    await Promise.all([
+      getTweets({ direction: "desc", sortBy: "tweetDate", page, size }),
+      countTweets(),
+      getLatestTweets(),
+      getUpcomingFixtures(),
+      getLatestResults(),
+    ]);
 
-  return json({ tweets, total, page, size, latestTweets });
+  return json({
+    tweets,
+    total,
+    page,
+    size,
+    latestTweets,
+    upcomingFixtures,
+    latestResults,
+  });
 };
 
 export default function Index() {
-  const { tweets, total, page, size, latestTweets } =
-    useLoaderData<typeof loader>();
+  const {
+    tweets,
+    total,
+    page,
+    size,
+    latestTweets,
+    upcomingFixtures,
+    latestResults,
+  } = useLoaderData<typeof loader>();
+  const upcomingFixturesToShow = upcomingFixtures.slice(0, 6);
+  const latestResultsToShow = latestResults.slice(0, 6);
   const columns: ColumnDef<
     { tweetImage: string; tweetDate: string; tweetText: string }[]
   >[] = [
@@ -47,7 +78,6 @@ export default function Index() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tweet = props.getValue() as any;
         const { tweetImage, tweetText, tweetDate, createdAt } = tweet;
-        console.log(tweetDate, typeof createdAt);
         const [title] = tweetText.split("\n").filter(Boolean);
         return (
           <Card className="group w-full group">
@@ -111,39 +141,56 @@ export default function Index() {
           ))}
         </CarouselContent>
       </Carousel>
-
-      <main className="relative min-h-screen flex py-8">
-        <div className="flex w-full justify-center">
-          <div className="w-full  lg:w-[80%] flex  flex-col lg:flex-row gap-8">
-            <div className="flex lg:w-2/3">
-              <div className="w-full">
-                <DataCardList
-                  paginationOptions={{ pageIndex: page, pageSize: size }}
-                  // @ts-expect-error - I'm not sure what the correct type is here
-                  data={tweets}
-                  columns={columns}
-                  totalCount={total}
-                  className="gap-4 flex flex-col w-full"
-                />
-              </div>
-            </div>
-            <div className="w-full lg:w-1/3 h-96 flex flex-col gap-8">
-              <Card>
-                <CardHeader className="uppercase font-medium">
-                  Upcoming matches
-                </CardHeader>
-                <CardContent className="h-48"></CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="uppercase font-medium">
-                  Match results
-                </CardHeader>
-                <CardContent className="h-48"></CardContent>
-              </Card>
-            </div>
+      <Container>
+        <div className="flex lg:w-2/3">
+          <div className="w-full">
+            <DataCardList
+              paginationOptions={{ pageIndex: page, pageSize: size }}
+              // @ts-expect-error - I'm not sure what the correct type is here
+              data={tweets}
+              columns={columns}
+              totalCount={total}
+              className="gap-4 flex flex-col w-full"
+            />
           </div>
         </div>
-      </main>
+        <div className="w-full lg:w-1/3 h-96 flex flex-col gap-8">
+          <Card>
+            <CardHeader className="uppercase font-medium">
+              Upcoming matches
+            </CardHeader>
+            <CardContent>
+              <FixtureList fixtures={upcomingFixturesToShow} />
+            </CardContent>
+            <CardFooter className="justify-end">
+              <Link
+                prefetch="intent"
+                to="./fixtures"
+                className="flex gap-2 uppercase hover:underline"
+              >
+                <p>View more</p> <ChevronRight />
+              </Link>
+            </CardFooter>
+          </Card>
+          <Card>
+            <CardHeader className="uppercase font-medium">
+              Match results
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              <FixtureList fixtures={latestResultsToShow} />
+            </CardContent>
+            <CardFooter className="justify-end">
+              <Link
+                prefetch="intent"
+                to="./fixtures"
+                className="flex gap-2 uppercase hover:underline"
+              >
+                <p>View more</p> <ChevronRight />
+              </Link>
+            </CardFooter>
+          </Card>
+        </div>
+      </Container>
     </div>
   );
 }
