@@ -2,8 +2,7 @@ import { WithId } from "mongodb";
 
 import db from "~/utils/db.server.ts";
 
-import { splitDate } from "./date-time.ts";
-import { GenericFilter } from "./type.ts";
+import { toZeroUTC } from "./date-time.ts";
 
 type TeamEvent = {
   Nm: string;
@@ -48,7 +47,7 @@ interface Fixture extends Document {
   Stages: Stage[];
 }
 
-type FixtureDTO = {
+export type FixtureDTO = {
   id: Event["Eid"];
   competition: {
     id: Stage["Sid"];
@@ -72,8 +71,6 @@ type FixtureDTO = {
     abbreviation: TeamEvent["Abr"];
   };
 };
-
-type FixtureFilter = GenericFilter<Fixture>;
 
 const fixtureCollectionName = "ls_fixture";
 
@@ -110,26 +107,6 @@ const formatFixtures = (fixtures?: WithId<Fixture>[]): FixtureDTO[] =>
     )
     .flat(Infinity) || [];
 
-export const getFixtures = ({
-  direction = "desc",
-  page = 1,
-  size = 10,
-  orderBy = "fixtureDate",
-}: FixtureFilter) => {
-  const fixtureCollection = db?.collection(fixtureCollectionName);
-
-  return fixtureCollection
-    ?.find(
-      {},
-      {
-        limit: size,
-        sort: { [orderBy]: direction === "desc" ? -1 : 1 },
-        skip: (page - 1) * size,
-      },
-    )
-    .toArray();
-};
-
 export const countFixtures = () => {
   const fixtureCollection = db?.collection(fixtureCollectionName);
 
@@ -138,8 +115,7 @@ export const countFixtures = () => {
 
 export const getUpcomingFixtures = async () => {
   const fixtureCollection = db?.collection<Fixture>(fixtureCollectionName);
-  const [year, month, day] = splitDate();
-  const today = new Date(year, month, day);
+  const today = toZeroUTC();
 
   try {
     const latestFixtures = await fixtureCollection
@@ -157,8 +133,7 @@ export const getUpcomingFixtures = async () => {
 
 export const getLatestResults = async () => {
   const fixtureCollection = db?.collection<Fixture>(fixtureCollectionName);
-  const [year, month, day] = splitDate();
-  const today = new Date(year, month, day);
+  const today = toZeroUTC();
 
   try {
     const latestResults = await fixtureCollection
@@ -172,4 +147,41 @@ export const getLatestResults = async () => {
   } catch (error) {
     return Promise.reject(error);
   }
+};
+
+export const getFixtures = async ({
+  fixtureDate = new Date(),
+}: {
+  fixtureDate?: Date;
+}) => {
+  const fixtureCollection = db?.collection<Fixture>(fixtureCollectionName);
+  const wantedDate = toZeroUTC(fixtureDate);
+
+  try {
+    const fixtures = await fixtureCollection
+      ?.find(
+        { fixtureDate: wantedDate },
+        { limit: 1, sort: { fixtureDate: -1 } },
+      )
+      .toArray();
+
+    return formatFixtures(fixtures);
+  } catch (error) {
+    return Promise.reject(error);
+  }
+};
+
+export const getFixture = async (id: FixtureDTO["id"]) => {
+  const fixtureCollection = db?.collection<Fixture>(fixtureCollectionName);
+  const fixture = await fixtureCollection?.findOne({ "Stages.Events.Eid": id });
+
+  if (!fixture) {
+    return null;
+  }
+
+  const formattedFixture = formatFixtures([fixture]).find(
+    ({ id: fixtureId }) => fixtureId === id,
+  );
+
+  return formattedFixture;
 };

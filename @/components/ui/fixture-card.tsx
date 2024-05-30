@@ -20,7 +20,7 @@ const FixtureCardTeam = ({
   baseUrl,
 }: {
   baseUrl?: string;
-  score: string;
+  score?: string;
   team: { img: string; name: string; abbreviation: string };
 }) => (
   <div className="flex justify-between items-center">

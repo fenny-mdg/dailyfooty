@@ -50,3 +50,37 @@ export const splitDate = (date: Date = new Date()) => {
 
   return [year, month, day];
 };
+
+export const dateAdd = (
+  date: Date,
+  quantity: number,
+  unit: "day" | "month" | "year",
+) => {
+  let [year, month, day] = splitDate(date);
+
+  switch (unit.toLowerCase()) {
+    case "day":
+      day += quantity;
+      break;
+    case "month":
+      month += quantity;
+      break;
+    case "year":
+      year += quantity;
+      break;
+
+    default:
+      throw new Error("unit not supported");
+  }
+
+  return new Date(year, month, day);
+};
+
+export const toZeroUTC = (date: Date = new Date()) => {
+  const timezoneHour = -(date.getTimezoneOffset() / 60);
+  const timezoneMinute = -(date.getTimezoneOffset() % 60);
+  const [year, month, day] = splitDate(date);
+
+  // We want that date has 00:00:00 as time
+  return new Date(year, month, day, timezoneHour, timezoneMinute, 0, 0);
+};
