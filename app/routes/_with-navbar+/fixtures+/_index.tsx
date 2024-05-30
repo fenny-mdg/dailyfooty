@@ -86,15 +86,17 @@ export default function FixtureIndexPage() {
     searchParams.set("selectedDate", value);
     setSearchParams(searchParams);
   };
-  const handleCalendarSelect = (newDate: Date) => {
-    setCalendarDate(newDate);
-    searchParams.set(
-      "selectedDate",
-      Intl.DateTimeFormat("en-GB", {
-        dateStyle: "short",
-      }).format(newDate),
-    );
-    setSearchParams(searchParams);
+  const handleCalendarSelect = (newDate?: Date) => {
+    if (newDate) {
+      setCalendarDate(newDate);
+      searchParams.set(
+        "selectedDate",
+        Intl.DateTimeFormat("en-GB", {
+          dateStyle: "short",
+        }).format(newDate),
+      );
+      setSearchParams(searchParams);
+    }
   };
 
   return (
