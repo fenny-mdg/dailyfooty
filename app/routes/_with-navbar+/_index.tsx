@@ -178,34 +178,6 @@ export default function Index() {
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
               <FixtureList fixtures={latestResultsToShow} />
-              {/* {latestResultsToShow.map((fixture) => (
-                <>
-                  <FixtureCard key={fixture.id}>
-                    <Link
-                      prefetch="intent"
-                      to={`/fixtures/${fixture.id}`}
-                      className="absolute inset-0 w-full h-full z-10 cursor-pointer"
-                    />
-                    <FixtureCardStatus>
-                      {fixture.status === "NS"
-                        ? formatFixtureDate(fixture.startDate)
-                        : fixture.status}
-                    </FixtureCardStatus>
-                    <FixtureCardTeams>
-                      <FixtureCardTeam
-                        baseUrl={teamBadgeBaseUrl}
-                        team={fixture.homeTeam}
-                        score={fixture.score[0]}
-                      />
-                      <FixtureCardTeam
-                        baseUrl={teamBadgeBaseUrl}
-                        team={fixture.awayTeam}
-                        score={fixture.score[1]}
-                      />
-                    </FixtureCardTeams>
-                  </FixtureCard>
-                </>
-              ))} */}
             </CardContent>
             <CardFooter className="justify-end">
               <Link
