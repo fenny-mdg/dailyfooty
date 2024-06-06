@@ -15,6 +15,7 @@ import { getFixture } from "./fixture.server.ts";
 type FixtureDetail = {
   id: string;
   pageProps: {
+    __N_REDIRECT?: string;
     initialEventData: {
       isError: boolean;
       event: {
@@ -184,12 +185,11 @@ export const getFixtureDetail = async (id: FixtureDetailDTO["id"]) => {
     id,
   });
 
-  if (!fixtureDetail) {
+  if (!fixtureDetail?.pageProps?.initialEventData) {
     const fixture = await getFixture(id);
     if (!fixture) {
       return null;
     }
-    console.log("Fetching fixture detail", id, fixture);
 
     const {
       competition: { tag, countryTag, countryAltName },
@@ -199,10 +199,14 @@ export const getFixtureDetail = async (id: FixtureDetailDTO["id"]) => {
     } = fixture;
 
     try {
+      const defaultBuildId = "0ZdbI-Nf6GsJBYU7Bv2ik";
+      const [, newBuildId] =
+        fixtureDetail?.pageProps?.__N_REDIRECT?.split("buildid=") || [];
+      const buildId = newBuildId || defaultBuildId;
       const urls = [
         ...new Set([
-          `https://www.livescore.com/_next/data/0ZdbI-Nf6GsJBYU7Bv2ik/en/football/${countryAltName?.toLowerCase()}/${tag.toLowerCase()}/${homeTeamName.toLowerCase()}-vs-${awayTeamName.toLowerCase()}/${id}.json?sport=football&eventId=${id}`,
-          `https://www.livescore.com/_next/data/0ZdbI-Nf6GsJBYU7Bv2ik/en/football/${countryTag?.toLowerCase() || countryAltName?.toLowerCase()}/${tag.toLowerCase()}/${homeTeamName.toLowerCase()}-vs-${awayTeamName.toLowerCase()}/${id}.json?sport=football&eventId=${id}`,
+          `https://www.livescore.com/_next/data/${buildId}/en/football/${countryAltName?.toLowerCase()}/${tag.toLowerCase()}/${homeTeamName.toLowerCase()}-vs-${awayTeamName.toLowerCase()}/${id}.json?sport=football&eventId=${id}`,
+          `https://www.livescore.com/_next/data/${buildId}/en/football/${countryTag?.toLowerCase() || countryAltName?.toLowerCase()}/${tag.toLowerCase()}/${homeTeamName.toLowerCase()}-vs-${awayTeamName.toLowerCase()}/${id}.json?sport=football&eventId=${id}`,
         ]),
       ];
       const requests = urls.map((url) => request(url));
