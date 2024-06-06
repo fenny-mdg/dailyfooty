@@ -3,74 +3,12 @@ import { WithId } from "mongodb";
 import db from "~/utils/db.server.ts";
 
 import { toZeroUTC } from "./date-time.ts";
-
-type TeamEvent = {
-  Nm: string;
-  ID: string;
-  Img: string;
-  Abr: string;
-};
-
-type Event = {
-  Eid: string;
-  Pids: object;
-  T1: TeamEvent[];
-  T2: TeamEvent[];
-  Eps: string;
-  Esid: number;
-  Epr: number;
-  Ecov: number;
-  Et: number;
-  Esd: number;
-  EO: number;
-  EOX: number;
-  Spid: number;
-  Pid: number;
-  Tr1?: string;
-  Tr2?: string;
-};
-
-type Stage = {
-  Sid: string;
-  Snm: string;
-  Scd: string;
-  Cnm: string;
-  CnmT: string;
-  Csnm: string;
-  Ccd: string;
-  Scu: number;
-  Events: Event[];
-};
+import { FixtureDTO, Stage } from "./fixture.ts";
 
 interface Fixture extends Document {
   fixtureDate: Date;
   Stages: Stage[];
 }
-
-export type FixtureDTO = {
-  id: Event["Eid"];
-  competition: {
-    id: Stage["Sid"];
-    name: Stage["Snm"];
-    countryName: Stage["Cnm"];
-    countryTag: Stage["CnmT"];
-  };
-  startDate: Event["Esd"];
-  status: Event["Eps"];
-  score: [Event["Tr1"], Event["Tr2"]];
-  homeTeam: {
-    id: TeamEvent["ID"];
-    img: TeamEvent["Img"];
-    name: TeamEvent["Nm"];
-    abbreviation: TeamEvent["Abr"];
-  };
-  awayTeam: {
-    id: TeamEvent["ID"];
-    img: TeamEvent["Img"];
-    name: TeamEvent["Nm"];
-    abbreviation: TeamEvent["Abr"];
-  };
-};
 
 const fixtureCollectionName = "ls_fixture";
 
@@ -81,11 +19,14 @@ const formatFixtures = (fixtures?: WithId<Fixture>[]): FixtureDTO[] =>
       fixture.Stages.map((stage) =>
         stage.Events.map(({ Eid, Esd, Eps, Tr1, Tr2, T1, T2 }) => ({
           id: Eid,
+          fixtureDate: fixture.fixtureDate,
           competition: {
             id: stage.Sid,
             name: stage.Snm,
+            tag: stage.Scd,
             countryName: stage.Cnm,
-            countryTag: stage.CnmT,
+            countryTag: stage.Ccd,
+            countryAltName: stage.CnmT,
           },
           startDate: Esd,
           status: Eps,
@@ -125,7 +66,9 @@ export const getUpcomingFixtures = async () => {
       )
       .toArray();
 
-    return formatFixtures(latestFixtures);
+    const formattedFixtures = formatFixtures(latestFixtures);
+
+    return formattedFixtures.filter(({ status }) => status === "NS");
   } catch (error) {
     return Promise.reject(error);
   }
