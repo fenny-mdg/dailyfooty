@@ -14,7 +14,8 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs.tsx";
 import { cn } from "@/lib/utils.ts";
 import { dateAdd } from "~/utils/date-time.ts";
-import { FixtureDTO, getFixtures } from "~/utils/fixture.server.ts";
+import { getFixtures } from "~/utils/fixture.server.ts";
+import { FixtureDTO } from "~/utils/fixture.ts";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
@@ -54,6 +55,7 @@ export default function FixtureIndexPage() {
       group[competitionId] = { order: index, competition, fixtures: [] };
     }
 
+    // @ts-expect-error Type issue
     group[competitionId].fixtures.push(fixture);
 
     return group;

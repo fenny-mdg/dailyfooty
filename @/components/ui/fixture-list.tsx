@@ -1,7 +1,7 @@
 import { Link } from "@remix-run/react";
 
 import { formatFixtureDate } from "~/utils/date-time.ts";
-import { FixtureDTO } from "~/utils/fixture.server.ts";
+import { FixtureDTO } from "~/utils/fixture.ts";
 import { teamBadgeBaseUrl } from "~/utils/misc.tsx";
 
 import {

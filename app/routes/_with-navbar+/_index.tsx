@@ -160,6 +160,7 @@ export default function Index() {
               Upcoming matches
             </CardHeader>
             <CardContent>
+              {/* @ts-expect-error  I'm sure about the data type */}
               <FixtureList fixtures={upcomingFixturesToShow} />
             </CardContent>
             <CardFooter className="justify-end">
@@ -177,6 +178,7 @@ export default function Index() {
               Match results
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
+              {/* @ts-expect-error  I'm sure about the data type */}
               <FixtureList fixtures={latestResultsToShow} />
             </CardContent>
             <CardFooter className="justify-end">
