@@ -60,3 +60,57 @@ export type FixtureDTO = {
   homeTeam: FixtureTeam;
   awayTeam: FixtureTeam;
 };
+
+export type CommonEvent = {
+  status: string;
+  categoryName: string;
+  competitionId: string;
+  countryId: string;
+  finishDateTimeString: string;
+  flagAlt: string;
+  flagUrl: string;
+  homeTeamScore: string;
+  awayTeamScore: string;
+  homeTeamName: string;
+  awayTeamName: string;
+  homeTeamId: string;
+  awayTeamId: string;
+  homeTeamBadge: {
+    high: string;
+    medium: string;
+  };
+  awayTeamBadge: {
+    high: string;
+    medium: string;
+  };
+  isActive: boolean;
+  isEventOutdated: boolean;
+  isFinishedAfterPenalties: boolean;
+  scores: {
+    aggregateAwayScore?: string;
+    aggregateHomeScore?: string;
+    awayOvertimeScore: string;
+    awayTeamName: string;
+    awayTeamScore: string;
+    homeOvertimeScore: string;
+    homeTeamName: string;
+    homeTeamScore: string;
+    penaltyAwayScore: number;
+    penaltyHomeScore: number;
+  };
+  stageId: string;
+  stageName: string;
+  winner: string;
+  winnerId: string;
+};
+
+export type FixtureGeneric<T> = {
+  id: string;
+  pageProps: {
+    __N_REDIRECT?: string;
+    initialEventData: {
+      isError: boolean;
+      event: T;
+    };
+  };
+};

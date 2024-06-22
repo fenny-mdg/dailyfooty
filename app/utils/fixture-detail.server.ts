@@ -11,70 +11,21 @@ import {
   Team,
 } from "./fixture-detail.ts";
 import { getFixture } from "./fixture.server.ts";
+import { CommonEvent, FixtureGeneric } from "./fixture.ts";
 
-type FixtureDetail = {
-  id: string;
-  pageProps: {
-    __N_REDIRECT?: string;
-    initialEventData: {
-      isError: boolean;
-      event: {
-        categoryName: string;
-        competitionId: string;
-        countryId: string;
-        finishDateTimeString: string;
-        flagAlt: string;
-        flagUrl: string;
-        homeTeamScore: string;
-        awayTeamScore: string;
-        homeTeamName: string;
-        awayTeamName: string;
-        homeTeamId: string;
-        awayTeamId: string;
-        homeTeamBadge: {
-          high: string;
-          medium: string;
-        };
-        awayTeamBadge: {
-          high: string;
-          medium: string;
-        };
-        isActive: boolean;
-        isEventOutdated: boolean;
-        isFinishedAfterPenalties: boolean;
-        incidents: {
-          hasAssists: boolean;
-          incs: {
-            [key in
-              | "football1"
-              | "football2"
-              | "football3"
-              | "football4"]: Record<
-              string,
-              { AWAY: Incident[]; HOME: Incident[] }[]
-            >;
-          };
-        };
-        scores: {
-          aggregateAwayScore?: string;
-          aggregateHomeScore?: string;
-          awayOvertimeScore: string;
-          awayTeamName: string;
-          awayTeamScore: string;
-          homeOvertimeScore: string;
-          homeTeamName: string;
-          homeTeamScore: string;
-          penaltyAwayScore: number;
-          penaltyHomeScore: number;
-        };
-        stageId: string;
-        stageName: string;
-        winner: string;
-        winnerId: string;
-      };
+type FixtureDetailEvent = CommonEvent & {
+  incidents: {
+    hasAssists: boolean;
+    incs: {
+      [key in "football1" | "football2" | "football3" | "football4"]: Record<
+        string,
+        { AWAY: Incident[]; HOME: Incident[] }[]
+      >;
     };
   };
 };
+
+type FixtureDetail = FixtureGeneric<FixtureDetailEvent>;
 
 const extractImageKey = (url: string) => {
   const { pathname } = new URL(url);
@@ -111,6 +62,7 @@ const formatFixtureDetail = (
     pageProps: {
       initialEventData: {
         event: {
+          status,
           homeTeamId,
           homeTeamName,
           homeTeamBadge: { medium: homeTeamMediumBadge },
@@ -172,7 +124,7 @@ const formatFixtureDetail = (
     overtime,
   };
 
-  return { id, homeTeam, awayTeam, scores, events };
+  return { id, homeTeam, awayTeam, scores, events, status };
 };
 
 const fixtureCollectionName = "ls_fixture_detail";

@@ -2,7 +2,6 @@ import { Link } from "@remix-run/react";
 
 import { formatFixtureDate } from "~/utils/date-time.ts";
 import { FixtureDTO } from "~/utils/fixture.ts";
-import { teamBadgeBaseUrl } from "~/utils/misc.tsx";
 
 import {
   FixtureCard,
@@ -29,12 +28,10 @@ export const FixtureList = ({ fixtures }: { fixtures: FixtureDTO[] }) => {
             </FixtureCardStatus>
             <FixtureCardTeams>
               <FixtureCardTeam
-                baseUrl={teamBadgeBaseUrl}
                 team={fixture.homeTeam}
                 score={fixture.score[0]}
               />
               <FixtureCardTeam
-                baseUrl={teamBadgeBaseUrl}
                 team={fixture.awayTeam}
                 score={fixture.score[1]}
               />
