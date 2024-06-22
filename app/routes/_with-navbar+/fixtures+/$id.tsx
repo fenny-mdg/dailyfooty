@@ -2,7 +2,7 @@ import { json, LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import invariant from "tiny-invariant";
 
-import { Card, CardContent } from "@/components/ui/card.tsx";
+import { Card, CardContent, CardTitle } from "@/components/ui/card.tsx";
 import {
   FixtureEventList,
   FixtureEventScore,
@@ -111,9 +111,13 @@ export default function FixtureDetail() {
       {fixture ? (
         <div>
           <Card>
+            <CardTitle className="p-6 flex flex-col w-full">
+              <h3 className="text-lg">{fixture.competition.name}</h3>
+              <p className="text-sm font-normal">
+                {fixture.competition.countryName}
+              </p>
+            </CardTitle>
             <CardContent className="flex flex-col">
-              <h3>{fixture.competition.name}</h3>
-              <p>{fixture.competition.countryName}</p>
               <div className="flex w-full justify-between mt-6">
                 <FixtureEventTeam team={fixture.homeTeam} />
                 <FixtureEventScore
