@@ -42,26 +42,3 @@ export const FormationSubs = ({
     </Card>
   );
 };
-export const FormationSubsContainer = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
-  <Card className={cn("lg:flex-1", className)} {...props} />
-);
-// export const FormationSubsContainer = () => {
-//   return (
-//     <div className="lg:flex-1 order-3">
-//       <p> {lineups?.awayFormation}</p>
-//       <p>{lineups?.awayCoach?.[0]?.name}</p>
-
-//       <div>
-//         {lineups?.awaySubs?.map((player) => (
-//           <span key={player.playerId} className="flex gap-2">
-//             <p>{player.number}</p>
-//             <p>{player.name}</p>
-//           </span>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// };

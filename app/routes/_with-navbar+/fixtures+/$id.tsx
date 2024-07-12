@@ -219,19 +219,6 @@ export default function FixtureDetail() {
                 value="lineup"
                 className="flex flex-col lg:flex-row gap-4"
               >
-                {/* <div className="lg:flex-1 order-2 lg:order-1 flex flex-col lg:items-end lg:text-right">
-                  <p> {lineups?.homeFormation}</p>
-                  <p>{lineups?.homeCoach?.[0]?.name}</p>
-
-                  <div className="flex flex-col lg:items-end">
-                    {lineups?.homeSubs?.map((player) => (
-                      <span key={player.playerId} className="flex gap-2">
-                        <p>{player.name}</p>
-                        <p>{player.number}</p>
-                      </span>
-                    ))}
-                  </div>
-                </div> */}
                 <FormationSubs
                   team={fixture.homeTeam}
                   className="order-2 lg:order-1"
@@ -309,25 +296,6 @@ export default function FixtureDetail() {
                   subs={lineups.awaySubs}
                   coach={lineups.awayCoach}
                 />
-                {/* <Card className="lg:flex-1 order-3 flex flex-col">
-                  <CardHeader className="flex justify-between">
-                    <p> {lineups?.awayFormation}</p>
-                  </CardHeader>
-
-                  <CardContent className="flex-1">
-                    {lineups?.awaySubs?.map((player) => (
-                      <span key={player.playerId} className="flex gap-2">
-                        <p>{player.number}</p>
-                        <p>{player.name}</p>
-                      </span>
-                    ))}
-                  </CardContent>
-
-                  <CardFooter className="flex justify-between">
-                    <p className="font-medium">Headcoach </p>
-                    <p>{lineups.awayCoach?.[0]?.name}</p>
-                  </CardFooter>
-                </Card> */}
               </TabsContent>
             ) : null}
             {stats ? (
