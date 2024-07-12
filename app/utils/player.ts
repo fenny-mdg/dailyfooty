@@ -3,7 +3,7 @@ export type Player = {
   name: string;
   shortName: string;
   number: number;
-  fieldPosition: string;
+  fieldPosition?: string;
   minOut: string;
   position: string;
   positionId: number;

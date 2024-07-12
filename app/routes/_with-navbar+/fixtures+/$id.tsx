@@ -92,6 +92,7 @@ export default function FixtureDetail() {
     lineups,
   } = useLoaderData<typeof loader>();
   const firstPeriod = fixtureDetail?.events?.firstPeriod;
+  const hasEvent = Object.keys(firstPeriod || {}).length > 0;
   const secondPeriod = fixtureDetail?.events?.secondPeriod;
   const overtime = fixtureDetail?.events?.overtime;
   const allTable = table?.tables?.find((t) => t.kind === "all");
@@ -122,7 +123,7 @@ export default function FixtureDetail() {
     Record<string, Player[]>
   >((group, player) => {
     const { fieldPosition } = player;
-    const [role] = fieldPosition.split(":");
+    const [role] = fieldPosition ? fieldPosition.split(":") : ["all"];
 
     if (!group[role]) {
       group[role] = [];
@@ -140,7 +141,7 @@ export default function FixtureDetail() {
     Record<string, Player[]>
   >((group, player) => {
     const { fieldPosition } = player;
-    const [role] = fieldPosition.split(":");
+    const [role] = fieldPosition ? fieldPosition.split(":") : ["all"];
 
     if (!group[role]) {
       group[role] = [];
@@ -151,6 +152,9 @@ export default function FixtureDetail() {
     return group;
   }, {});
   const homeLineup = Object.values(homeStarterGroupedByPosition || {});
+  const positionKeys = Object.keys(homeStarterGroupedByPosition || {});
+  const displayLineupField =
+    Object.keys(positionKeys).length && !positionKeys.includes("all");
 
   return (
     <div className="w-full">
@@ -178,10 +182,12 @@ export default function FixtureDetail() {
 
           <Tabs defaultValue="event">
             <TabsList className="w-full flex overflow-auto justify-normal">
-              <TabsTrigger value="event" className="flex-1">
-                Event
-              </TabsTrigger>
-              {lineups ? (
+              {hasEvent ? (
+                <TabsTrigger value="event" className="flex-1">
+                  Event
+                </TabsTrigger>
+              ) : null}
+              {lineups?.homeSubs ? (
                 <TabsTrigger value="lineup" className="flex-1">
                   Lineup
                 </TabsTrigger>
@@ -208,12 +214,14 @@ export default function FixtureDetail() {
               ) : null}
             </TabsList>
 
-            <TabsContent title="Event" value="event">
-              <FixtureEventList events={firstPeriod || {}} />
-              <FixtureEventList events={secondPeriod || {}} />
-              <FixtureEventList events={overtime || {}} />
-            </TabsContent>
-            {lineups ? (
+            {hasEvent ? (
+              <TabsContent title="Event" value="event">
+                <FixtureEventList events={firstPeriod || {}} />
+                <FixtureEventList events={secondPeriod || {}} />
+                <FixtureEventList events={overtime || {}} />
+              </TabsContent>
+            ) : null}
+            {lineups?.homeSubs ? (
               <TabsContent
                 title="Lineup"
                 value="lineup"
@@ -221,79 +229,95 @@ export default function FixtureDetail() {
               >
                 <FormationSubs
                   team={fixture.homeTeam}
-                  className="order-2 lg:order-1"
+                  className={cn("order-2 lg:order-1", {
+                    "lg:flex-1": !displayLineupField,
+                  })}
                   formation={lineups.homeFormation}
-                  subs={lineups.homeSubs}
+                  subs={
+                    displayLineupField ? lineups.homeSubs : lineups.homeStarters
+                  }
                   coach={lineups.homeCoach}
                 />
-                <FootballField
-                  className={cn(
-                    "lg:flex-1 order-1 lg:order-2",
-                    "flex flex-col lg:items-end lg:text-right",
-                  )}
-                >
-                  <TeamFormation>
-                    {homeLineup.map((lineup, index) => (
-                      <span key={index} className="flex text-white items-start">
-                        {lineup.map((player) => (
-                          <div
-                            key={player.playerId}
-                            className="flex-1 flex flex-col items-center text-xs font-medium"
-                          >
-                            <span className="rounded-full flex items-center justify-center w-7 h-7 md:w-8 md:h-8">
-                              <Shirt
-                                className="w-8 h-8 md:w-9 md:h-9"
-                                width="inherit"
-                                height="inherit"
-                                strokeWidth={1}
-                                stroke="white"
-                                fill="white"
-                              />
-                              <p className="absolute text-[9px] font-bold md:text-xs lg:text-[9px] text-black">
-                                {player.number}
-                              </p>
-                            </span>
+                {displayLineupField ? (
+                  <FootballField
+                    className={cn(
+                      "lg:flex-1 order-1 lg:order-2",
+                      "flex flex-col lg:items-end lg:text-right",
+                    )}
+                  >
+                    <TeamFormation>
+                      {homeLineup.map((lineup, index) => (
+                        <span
+                          key={index}
+                          className="flex text-white items-start"
+                        >
+                          {lineup.map((player) => (
+                            <div
+                              key={player.playerId}
+                              className="flex-1 flex flex-col items-center text-xs font-medium"
+                            >
+                              <span className="rounded-full flex items-center justify-center w-7 h-7 md:w-8 md:h-8">
+                                <Shirt
+                                  className="w-8 h-8 md:w-9 md:h-9"
+                                  width="inherit"
+                                  height="inherit"
+                                  strokeWidth={1}
+                                  stroke="white"
+                                  fill="white"
+                                />
+                                <p className="absolute text-[9px] font-bold md:text-xs lg:text-[9px] text-black">
+                                  {player.number}
+                                </p>
+                              </span>
 
-                            <p>{player.shortName}</p>
-                          </div>
-                        ))}
-                      </span>
-                    ))}
-                  </TeamFormation>
-                  <TeamFormation className="top-[50%]">
-                    {awayLineup.map((lineup, index) => (
-                      <span key={index} className="flex text-white items-start">
-                        {lineup.map((player) => (
-                          <div
-                            key={player.playerId}
-                            className="flex-1 flex flex-col items-center text-xs font-medium"
-                          >
-                            <span className="rounded-full flex items-center justify-center w-7 h-7 md:w-8 md:h-8">
-                              <Shirt
-                                className="w-8 h-8 md:w-9 md:h-9"
-                                width="inherit"
-                                height="inherit"
-                                strokeWidth={1}
-                                stroke="black"
-                                fill="black"
-                              />
-                              <p className="absolute text-[9px] font-bold md:text-xs lg:text-[9px]">
-                                {player.number}
-                              </p>
-                            </span>
+                              <p>{player.shortName}</p>
+                            </div>
+                          ))}
+                        </span>
+                      ))}
+                    </TeamFormation>
+                    <TeamFormation className="top-[50%]">
+                      {awayLineup.map((lineup, index) => (
+                        <span
+                          key={index}
+                          className="flex text-white items-start"
+                        >
+                          {lineup.map((player) => (
+                            <div
+                              key={player.playerId}
+                              className="flex-1 flex flex-col items-center text-xs font-medium"
+                            >
+                              <span className="rounded-full flex items-center justify-center w-7 h-7 md:w-8 md:h-8">
+                                <Shirt
+                                  className="w-8 h-8 md:w-9 md:h-9"
+                                  width="inherit"
+                                  height="inherit"
+                                  strokeWidth={1}
+                                  stroke="black"
+                                  fill="black"
+                                />
+                                <p className="absolute text-[9px] font-bold md:text-xs lg:text-[9px]">
+                                  {player.number}
+                                </p>
+                              </span>
 
-                            <p>{player.shortName}</p>
-                          </div>
-                        ))}
-                      </span>
-                    ))}
-                  </TeamFormation>
-                </FootballField>
+                              <p>{player.shortName}</p>
+                            </div>
+                          ))}
+                        </span>
+                      ))}
+                    </TeamFormation>
+                  </FootballField>
+                ) : null}
                 <FormationSubs
                   team={fixture.awayTeam}
-                  className="order-3"
+                  className={cn("order-3", {
+                    "lg:flex-1": !displayLineupField,
+                  })}
                   formation={lineups.awayFormation}
-                  subs={lineups.awaySubs}
+                  subs={
+                    displayLineupField ? lineups.awaySubs : lineups.awayStarters
+                  }
                   coach={lineups.awayCoach}
                 />
               </TabsContent>
