@@ -21,11 +21,11 @@ const formatFixtureLineups = (
   fixtureLineups: FixtureLineups,
 ): FixtureLineupDTO => ({
   id: fixtureLineups.id,
-  ...fixtureLineups.pageProps.initialEventData.event.lineups,
+  ...(fixtureLineups.pageProps?.initialEventData?.event?.lineups || {}),
   homeFormation:
-    fixtureLineups.pageProps.initialEventData.event.fieldData.homeFormation,
+    fixtureLineups.pageProps?.initialEventData?.event?.fieldData?.homeFormation,
   awayFormation:
-    fixtureLineups.pageProps.initialEventData.event.fieldData.awayFormation,
+    fixtureLineups.pageProps?.initialEventData?.event?.fieldData?.awayFormation,
 });
 
 export const getFixtureLineups = async (id: FixtureLineupDTO["id"]) => {
