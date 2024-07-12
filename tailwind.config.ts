@@ -20,6 +20,10 @@ const config = {
       },
     },
     extend: {
+      backgroundImage: {
+        "football-field":
+          "repeating-linear-gradient(180deg,#516d14,#516d14 10%,#58741f 0,#58741f 20%)",
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

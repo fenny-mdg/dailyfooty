@@ -14,7 +14,7 @@ const formatFixtureHeadToHead = (
   fixtureHeadToHead: FixtureHeadToHead,
 ): FixtureHeadToHeadDTO => ({
   id: fixtureHeadToHead.id,
-  // @ts-expect-error some internal type issue 
+  // @ts-expect-error some internal type issue
   h2h: fixtureHeadToHead.pageProps.initialEventData.event.headToHead.h2h
     .map((h) => {
       const { stage, events } = h;
@@ -43,6 +43,7 @@ const formatFixtureHeadToHead = (
           name: event.awayName,
           abbreviation: event.awayName,
         },
+        winner: event.winner?.toLowerCase(),
       }));
     })
     .flat(Infinity),

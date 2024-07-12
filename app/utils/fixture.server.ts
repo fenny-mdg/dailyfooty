@@ -43,6 +43,14 @@ const formatFixtures = (fixtures?: WithId<Fixture>[]): FixtureDTO[] =>
             name: T2[0].Nm,
             abbreviation: T2[0].Abr,
           },
+          winner:
+            Tr1 && Tr2
+              ? Tr1 > Tr2
+                ? "home"
+                : Tr1 < Tr2
+                  ? "away"
+                  : "draw"
+              : undefined,
         })),
       ),
     )

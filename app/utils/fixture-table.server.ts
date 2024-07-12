@@ -12,7 +12,7 @@ type FixtureStats = FixtureGeneric<FixtureStatsEvent>;
 
 const formatFixtureTable = (fixtureTable: FixtureStats): FixtureTableDTO => ({
   id: fixtureTable.id,
-  tables: fixtureTable.pageProps.initialEventData.event.tables.league[""],
+  tables: fixtureTable.pageProps.initialEventData?.event?.tables.league[""],
 });
 
 export const getFixtureTable = async (id: FixtureTableDTO["id"]) => {
