@@ -96,7 +96,7 @@ export default function FixtureDetail() {
   const secondPeriod = fixtureDetail?.events?.secondPeriod;
   const overtime = fixtureDetail?.events?.overtime;
   const allTable = table?.tables?.find((t) => t.kind === "all");
-  const fixtureGroupedByCompetitions = headToHead?.h2h.reduce<
+  const fixtureGroupedByCompetitions = headToHead?.h2h?.reduce<
     Record<
       string,
       {
@@ -207,7 +207,7 @@ export default function FixtureDetail() {
                   Commentary
                 </TabsTrigger>
               ) : null}
-              {headToHead?.h2h ? (
+              {headToHead?.h2h?.length ? (
                 <TabsTrigger value="h2h" className="flex-1">
                   H2H
                 </TabsTrigger>

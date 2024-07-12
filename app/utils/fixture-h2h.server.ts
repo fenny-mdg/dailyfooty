@@ -15,8 +15,8 @@ const formatFixtureHeadToHead = (
 ): FixtureHeadToHeadDTO => ({
   id: fixtureHeadToHead.id,
   // @ts-expect-error some internal type issue
-  h2h: fixtureHeadToHead.pageProps.initialEventData.event.headToHead.h2h
-    .map((h) => {
+  h2h: fixtureHeadToHead.pageProps.initialEventData?.event?.headToHead?.h2h
+    ?.map((h) => {
       const { stage, events } = h;
       return events.map((event) => ({
         id: stage.stageId,
@@ -46,7 +46,7 @@ const formatFixtureHeadToHead = (
         winner: event.winner?.toLowerCase(),
       }));
     })
-    .flat(Infinity),
+    ?.flat(Infinity) || [],
 });
 
 export const getFixtureHeadToHead = async (id: FixtureHeadToHeadDTO["id"]) => {

@@ -30,7 +30,12 @@ const FixtureCardTeam = ({
     className={cn("flex justify-between items-center", { "font-bold": winner })}
   >
     <div className="flex gap-4 items-center">
-      <img src={`/media/${team.img}`} alt={team.abbreviation} className="w-6" />
+      <img
+        src={`/media/${team.img}`}
+        loading="lazy"
+        alt={team.abbreviation}
+        className="w-6"
+      />
       <p>{team.name}</p>
     </div>
     {score ? <p>{score}</p> : null}
