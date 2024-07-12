@@ -118,7 +118,7 @@ export const FixtureEventScore = ({
         </div>
       ) : null}
       <p className="text-sm">
-        {fixture.status === "NS"
+        {(fixtureDetail?.status || fixture.status) === "NS"
           ? formatFixtureDate(fixture.startDate)
           : fixture.status}
       </p>{" "}

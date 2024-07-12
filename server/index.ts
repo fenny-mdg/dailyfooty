@@ -149,6 +149,12 @@ const rateLimitDefault = {
   legacyHeaders: false,
 };
 
+const mediaRateLimit = rateLimit({
+  ...rateLimitDefault,
+  windowMs: 60 * 1000,
+  max: 10 * maxMultiple,
+});
+
 const strongestRateLimit = rateLimit({
   ...rateLimitDefault,
   windowMs: 60 * 1000,
@@ -174,6 +180,11 @@ app.use((req, res, next) => {
     "/resources/login",
     "/resources/verify",
   ];
+
+  if (req.path.includes("/media/")) {
+    return mediaRateLimit(req, res, next);
+  }
+
   if (req.method !== "GET" && req.method !== "HEAD") {
     if (strongPaths.some((p) => req.path.includes(p))) {
       return strongestRateLimit(req, res, next);

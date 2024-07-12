@@ -34,13 +34,25 @@ export const getRelativeDateFromNow = (date: string, locale = "en"): string => {
   return relativeTimeFormat.format(-Math.round(diff.value), diff.unit);
 };
 
-export const formatFixtureDate = (date: number) => {
+export const formatFixtureTime = (date: number) => {
   const dateStr = `${date}`;
   const splittedDate = dateStr.split("");
+  const hour = splittedDate.slice(8, 10).join("");
+  const minute = splittedDate.slice(10, 12).join("");
+ 
+
+  return `${hour}:${minute}`;
+};
+
+export const formatFixtureDate = (date: number) => {
+  const currentYear = new Date().getFullYear().toString().slice(2);
+  const dateStr = `${date}`;
+  const splittedDate = dateStr.split("");
+  const year = splittedDate.slice(2, 4).join("");
   const month = splittedDate.slice(4, 6).join("");
   const day = splittedDate.slice(6, 8).join("");
 
-  return `${day}/${month}`;
+  return `${day}/${month}${currentYear !== year ? `/${year}` : ""}`;
 };
 
 export const splitDate = (date: Date = new Date()) => {

@@ -38,6 +38,7 @@ export type FixtureDetailDTO = {
   awayTeam: Team;
   scores: Score;
   events: FixtureEvent;
+  status: string;
 };
 
 export type Incident = {

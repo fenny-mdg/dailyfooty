@@ -1,5 +1,12 @@
 import { cn } from "@/lib/utils.ts";
 
+type FixtureCardTeamProps = {
+  winner?: boolean;
+  baseUrl?: string;
+  score?: string;
+  team: { img: string; name: string; abbreviation?: string };
+};
+
 const FixtureCardStatus = ({
   className,
   ...props
@@ -17,21 +24,16 @@ const FixtureCardTeams = ({
 const FixtureCardTeam = ({
   team,
   score,
-}: {
-  baseUrl?: string;
-  score?: string;
-  team: { img: string; name: string; abbreviation: string };
-}) => (
-  <div className="flex justify-between items-center">
+  winner = false,
+}: FixtureCardTeamProps) => (
+  <div
+    className={cn("flex justify-between items-center", { "font-bold": winner })}
+  >
     <div className="flex gap-4 items-center">
-      <img
-        src={`/media/${team.img}`}
-        alt={team.abbreviation}
-        className="w-6"
-      />
+      <img src={`/media/${team.img}`} alt={team.abbreviation} className="w-6" />
       <p>{team.name}</p>
     </div>
-    {score ? <span className="font-medium">{score}</span> : null}
+    {score ? <p>{score}</p> : null}
   </div>
 );
 const FixtureCard = ({
