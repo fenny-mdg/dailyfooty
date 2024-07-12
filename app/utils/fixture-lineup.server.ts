@@ -7,6 +7,13 @@ const fixtureLineupsCollectionName = "ls_fixture_lineup";
 
 type FixtureLineupEvent = CommonEvent & {
   lineups: Lineups;
+  fieldData: {
+    homeTeamName: string;
+    awayTeamName: string;
+    homeFormation: string;
+    awayFormation: string;
+    canRenderField: boolean;
+  };
 };
 type FixtureLineups = FixtureGeneric<FixtureLineupEvent>;
 
@@ -15,6 +22,10 @@ const formatFixtureLineups = (
 ): FixtureLineupDTO => ({
   id: fixtureLineups.id,
   ...fixtureLineups.pageProps.initialEventData.event.lineups,
+  homeFormation:
+    fixtureLineups.pageProps.initialEventData.event.fieldData.homeFormation,
+  awayFormation:
+    fixtureLineups.pageProps.initialEventData.event.fieldData.awayFormation,
 });
 
 export const getFixtureLineups = async (id: FixtureLineupDTO["id"]) => {

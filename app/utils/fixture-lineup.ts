@@ -9,4 +9,7 @@ export type Lineups = {
   awayCoach: Player[];
 };
 
-export type FixtureLineupDTO = { id: string } & Lineups;
+export type FixtureLineupDTO = { id: string } & Lineups & {
+    homeFormation: string;
+    awayFormation: string;
+  };

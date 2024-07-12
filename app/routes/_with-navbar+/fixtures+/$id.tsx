@@ -1,5 +1,6 @@
 import { json, LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
+import { Shirt } from "lucide-react";
 import invariant from "tiny-invariant";
 
 import { Card, CardContent, CardTitle } from "@/components/ui/card.tsx";
@@ -9,6 +10,11 @@ import {
   FixtureEventTeam,
 } from "@/components/ui/fixture-detail.tsx";
 import { FixtureList } from "@/components/ui/fixture-list.tsx";
+import {
+  FootballField,
+  TeamFormation,
+} from "@/components/ui/football-field.tsx";
+import { FormationSubs } from "@/components/ui/formation-subs.tsx";
 import { Progress } from "@/components/ui/progress.tsx";
 import { Separator } from "@/components/ui/separator.tsx";
 import {
@@ -25,14 +31,21 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs.tsx";
+import { cn } from "@/lib/utils.ts";
 import { getFixtureCommentaries } from "~/utils/fixture-commentary.server.ts";
 import { getFixtureDetail } from "~/utils/fixture-detail.server.ts";
 import { getFixtureHeadToHead } from "~/utils/fixture-h2h.server.ts";
 import { getFixtureLineups } from "~/utils/fixture-lineup.server.ts";
 import { getFixtureStats } from "~/utils/fixture-stats.server.ts";
+import {
+  alwaysShowStatKeys,
+  Statistics,
+  statKeysMapper,
+} from "~/utils/fixture-stats.ts";
 import { getFixtureTable } from "~/utils/fixture-table.server.ts";
 import { getFixture } from "~/utils/fixture.server.ts";
 import { FixtureDTO } from "~/utils/fixture.ts";
+import { Player } from "~/utils/player.ts";
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { id } = params;
@@ -76,7 +89,7 @@ export default function FixtureDetail() {
     stats,
     commentaries,
     headToHead,
-    // lineups,
+    lineups,
   } = useLoaderData<typeof loader>();
   const firstPeriod = fixtureDetail?.events?.firstPeriod;
   const secondPeriod = fixtureDetail?.events?.secondPeriod;
@@ -105,6 +118,39 @@ export default function FixtureDetail() {
     return group;
   }, {});
   const competitionIds = Object.keys(fixtureGroupedByCompetitions || {});
+  const awayStarterGroupedByPosition = lineups?.awayStarters?.reduce<
+    Record<string, Player[]>
+  >((group, player) => {
+    const { fieldPosition } = player;
+    const [role] = fieldPosition.split(":");
+
+    if (!group[role]) {
+      group[role] = [];
+    }
+
+    group[role].push(player);
+
+    return group;
+  }, {});
+  const awayLineup = Object.values(awayStarterGroupedByPosition || {})
+    .map((lineup) => lineup.reverse())
+    .reverse();
+
+  const homeStarterGroupedByPosition = lineups?.homeStarters?.reduce<
+    Record<string, Player[]>
+  >((group, player) => {
+    const { fieldPosition } = player;
+    const [role] = fieldPosition.split(":");
+
+    if (!group[role]) {
+      group[role] = [];
+    }
+
+    group[role].push(player);
+
+    return group;
+  }, {});
+  const homeLineup = Object.values(homeStarterGroupedByPosition || {});
 
   return (
     <div className="w-full">
@@ -135,22 +181,31 @@ export default function FixtureDetail() {
               <TabsTrigger value="event" className="flex-1">
                 Event
               </TabsTrigger>
+              {lineups ? (
+                <TabsTrigger value="lineup" className="flex-1">
+                  Lineup
+                </TabsTrigger>
+              ) : null}
               {stats ? (
                 <TabsTrigger value="stats" className="flex-1">
                   Stats
                 </TabsTrigger>
               ) : null}
-              {table ? (
+              {table?.tables ? (
                 <TabsTrigger value="table" className="flex-1">
                   Table
                 </TabsTrigger>
               ) : null}
-              <TabsTrigger value="commentary" className="flex-1">
-                Commentary
-              </TabsTrigger>
-              <TabsTrigger value="h2h" className="flex-1">
-                H2H
-              </TabsTrigger>
+              {commentaries?.length ? (
+                <TabsTrigger value="commentary" className="flex-1">
+                  Commentary
+                </TabsTrigger>
+              ) : null}
+              {headToHead?.h2h ? (
+                <TabsTrigger value="h2h" className="flex-1">
+                  H2H
+                </TabsTrigger>
+              ) : null}
             </TabsList>
 
             <TabsContent title="Event" value="event">
@@ -158,34 +213,155 @@ export default function FixtureDetail() {
               <FixtureEventList events={secondPeriod || {}} />
               <FixtureEventList events={overtime || {}} />
             </TabsContent>
-            <TabsContent title="Stats" value="stats">
-              <div className="w-full p-8 flex flex-col gap-4">
-                {Object.keys(stats || {}).map((key) => {
-                  // @ts-expect-error stats can't be null if we are here
-                  const [home, away] = stats[key];
-                  const max = home + away;
-                  const homePercent = (home / max) * 100;
-                  const awayPercent = (away / max) * 100;
+            {lineups ? (
+              <TabsContent
+                title="Lineup"
+                value="lineup"
+                className="flex flex-col lg:flex-row gap-4"
+              >
+                {/* <div className="lg:flex-1 order-2 lg:order-1 flex flex-col lg:items-end lg:text-right">
+                  <p> {lineups?.homeFormation}</p>
+                  <p>{lineups?.homeCoach?.[0]?.name}</p>
 
-                  return (
-                    <div key={key} className="flex flex-col w-full">
-                      <div className="flex w-full">
-                        <p>{home}</p>
-                        <p className="flex-1 text-center">{key}</p>
-                        <p>{away}</p>
+                  <div className="flex flex-col lg:items-end">
+                    {lineups?.homeSubs?.map((player) => (
+                      <span key={player.playerId} className="flex gap-2">
+                        <p>{player.name}</p>
+                        <p>{player.number}</p>
+                      </span>
+                    ))}
+                  </div>
+                </div> */}
+                <FormationSubs
+                  team={fixture.homeTeam}
+                  className="order-2 lg:order-1"
+                  formation={lineups.homeFormation}
+                  subs={lineups.homeSubs}
+                  coach={lineups.homeCoach}
+                />
+                <FootballField
+                  className={cn(
+                    "lg:flex-1 order-1 lg:order-2",
+                    "flex flex-col lg:items-end lg:text-right",
+                  )}
+                >
+                  <TeamFormation>
+                    {homeLineup.map((lineup, index) => (
+                      <span key={index} className="flex text-white items-start">
+                        {lineup.map((player) => (
+                          <div
+                            key={player.playerId}
+                            className="flex-1 flex flex-col items-center text-xs font-medium"
+                          >
+                            <span className="rounded-full flex items-center justify-center w-7 h-7 md:w-8 md:h-8">
+                              <Shirt
+                                className="w-8 h-8 md:w-9 md:h-9"
+                                width="inherit"
+                                height="inherit"
+                                strokeWidth={1}
+                                stroke="white"
+                                fill="white"
+                              />
+                              <p className="absolute text-[9px] font-bold md:text-xs lg:text-[9px] text-black">
+                                {player.number}
+                              </p>
+                            </span>
+
+                            <p>{player.shortName}</p>
+                          </div>
+                        ))}
+                      </span>
+                    ))}
+                  </TeamFormation>
+                  <TeamFormation className="top-[50%]">
+                    {awayLineup.map((lineup, index) => (
+                      <span key={index} className="flex text-white items-start">
+                        {lineup.map((player) => (
+                          <div
+                            key={player.playerId}
+                            className="flex-1 flex flex-col items-center text-xs font-medium"
+                          >
+                            <span className="rounded-full flex items-center justify-center w-7 h-7 md:w-8 md:h-8">
+                              <Shirt
+                                className="w-8 h-8 md:w-9 md:h-9"
+                                width="inherit"
+                                height="inherit"
+                                strokeWidth={1}
+                                stroke="black"
+                                fill="black"
+                              />
+                              <p className="absolute text-[9px] font-bold md:text-xs lg:text-[9px]">
+                                {player.number}
+                              </p>
+                            </span>
+
+                            <p>{player.shortName}</p>
+                          </div>
+                        ))}
+                      </span>
+                    ))}
+                  </TeamFormation>
+                </FootballField>
+                <FormationSubs
+                  team={fixture.awayTeam}
+                  className="order-3"
+                  formation={lineups.awayFormation}
+                  subs={lineups.awaySubs}
+                  coach={lineups.awayCoach}
+                />
+                {/* <Card className="lg:flex-1 order-3 flex flex-col">
+                  <CardHeader className="flex justify-between">
+                    <p> {lineups?.awayFormation}</p>
+                  </CardHeader>
+
+                  <CardContent className="flex-1">
+                    {lineups?.awaySubs?.map((player) => (
+                      <span key={player.playerId} className="flex gap-2">
+                        <p>{player.number}</p>
+                        <p>{player.name}</p>
+                      </span>
+                    ))}
+                  </CardContent>
+
+                  <CardFooter className="flex justify-between">
+                    <p className="font-medium">Headcoach </p>
+                    <p>{lineups.awayCoach?.[0]?.name}</p>
+                  </CardFooter>
+                </Card> */}
+              </TabsContent>
+            ) : null}
+            {stats ? (
+              <TabsContent title="Stats" value="stats">
+                <div className="w-full p-8 flex flex-col gap-4">
+                  {Object.keys(stats).map((key) => {
+                    // @ts-expect-error stats can't be null if we are here
+                    const [home, away] = stats[key];
+                    const max = home + away;
+                    const homePercent = (home / max) * 100;
+                    const awayPercent = (away / max) * 100;
+
+                    return max || alwaysShowStatKeys.includes(key) ? (
+                      <div key={key} className="flex flex-col w-full">
+                        <div className="flex w-full">
+                          <p>{home}</p>
+                          <p className="flex-1 text-center">
+                            {statKeysMapper[key as keyof Statistics].default}
+                          </p>
+                          <p>{away}</p>
+                        </div>
+                        <div className="flex gap-4">
+                          <Progress
+                            value={homePercent}
+                            className="rotate-180 flex-1"
+                          />
+                          <Progress value={awayPercent} className="flex-1" />{" "}
+                        </div>
                       </div>
-                      <div className="flex gap-4">
-                        <Progress
-                          value={homePercent}
-                          className="rotate-180 flex-1"
-                        />
-                        <Progress value={awayPercent} className="flex-1" />{" "}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </TabsContent>
+                    ) : null;
+                  })}
+                </div>
+              </TabsContent>
+            ) : null}
             {allTable ? (
               <TabsContent title="Table" value="table">
                 <Table>
@@ -257,7 +433,7 @@ export default function FixtureDetail() {
                           <h4 className="font-medium">{competition.name}</h4>
                           <p className="text-xs">{competition.countryName}</p>
                         </div>
-                        <FixtureList fixtures={currentFixtures} />
+                        <FixtureList fixtures={currentFixtures} disableLinks />
                       </div>
                     </div>
                   );
