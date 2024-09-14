@@ -1,5 +1,10 @@
 import { json, LoaderFunctionArgs } from "@remix-run/node";
-import { Link, Outlet, useLoaderData } from "@remix-run/react";
+import {
+  ClientLoaderFunctionArgs,
+  Link,
+  Outlet,
+  useLoaderData,
+} from "@remix-run/react";
 import {
   CalendarClock,
   Coins,
@@ -9,6 +14,7 @@ import {
   Table,
 } from "lucide-react";
 import invariant from "tiny-invariant";
+// import { fetch } from "undici";
 
 import { Card, CardContent, CardTitle } from "@/components/ui/card.tsx";
 import {
@@ -16,12 +22,7 @@ import {
   FixtureEventTeam,
 } from "@/components/ui/fixture-detail.tsx";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs.tsx";
-import { hasFixtureCommentaries } from "~/utils/fixture-commentary.server.ts";
-// import { getFixtureDetail } from "~/utils/fixture-detail.server.ts";
-import { hasFixtureHeadToHead } from "~/utils/fixture-h2h.server.ts";
-import { hasFixtureLineup } from "~/utils/fixture-lineup.server.ts";
-import { hasFixtureStats } from "~/utils/fixture-stats.server.ts";
-import { hasFixtureTable } from "~/utils/fixture-table.server.ts";
+import { FixtureDetailDTO } from "~/utils/fixture-detail.ts";
 import { getFixture } from "~/utils/fixture.server.ts";
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
@@ -29,45 +30,59 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 
   invariant(typeof id === "string", "Fixture id must be string");
 
-  const [
-    fixture,
-    // fixtureDetail,
-    hasStats,
-    hasLineups,
-    hasH2H,
-    hasTable,
-    hasCommentaries,
-  ] = await Promise.all([
-    getFixture(id),
-    // getFixtureDetail(id),
-    hasFixtureStats(id),
-    hasFixtureLineup(id),
-    hasFixtureHeadToHead(id),
-    hasFixtureTable(id),
-    hasFixtureCommentaries(id),
-  ]);
+  const fixture = await getFixture(id);
 
   return json({
     fixture,
-    // fixtureDetail,
+  });
+};
+
+export const clientLoader = async ({
+  params,
+  serverLoader,
+}: ClientLoaderFunctionArgs) => {
+  const { id } = params;
+
+  invariant(typeof id === "string", "Fixture id must be string");
+
+  const [
+    serverData,
+    { fixtureDetail, hasStats, hasLineups, hasH2H, hasTable, hasCommentaries },
+  ] = await Promise.all([
+    serverLoader<typeof loader>(),
+    fetch(`/api/fixtures/${id}`).then((res) => res.json()) as Promise<{
+      fixtureDetail: FixtureDetailDTO;
+      hasStats: boolean;
+      hasLineups: boolean;
+      hasH2H: boolean;
+      hasTable: boolean;
+      hasCommentaries: boolean;
+    }>,
+  ]);
+
+  return {
+    ...serverData,
+    fixtureDetail,
     hasStats,
     hasLineups,
     hasH2H,
     hasTable,
     hasCommentaries,
-  });
+  };
 };
+
+clientLoader.hydrate = true;
 
 export default function FixtureDetail() {
   const {
     fixture,
-    // fixtureDetail,
+    fixtureDetail,
     hasStats,
     hasLineups,
     hasH2H,
     hasTable,
     hasCommentaries,
-  } = useLoaderData<typeof loader>();
+  } = useLoaderData<typeof clientLoader>();
   const tabs = [
     { value: "events", label: "Event", Icon: CalendarClock },
     ...(hasCommentaries
@@ -98,7 +113,7 @@ export default function FixtureDetail() {
                 <FixtureEventScore
                   // @ts-expect-error Date type issue
                   fixture={fixture}
-                  // fixtureDetail={fixtureDetail}
+                  fixtureDetail={fixtureDetail}
                 />
                 <FixtureEventTeam team={fixture.awayTeam} />
               </div>
@@ -125,7 +140,7 @@ export default function FixtureDetail() {
             </TabsList>
           </Tabs>
 
-          <div>
+          <div className="flex flex-col lg:flex-row gap-4">
             <Outlet />
           </div>
         </div>
