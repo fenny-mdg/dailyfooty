@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/fixture-detail.tsx";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs.tsx";
 import { hasFixtureCommentaries } from "~/utils/fixture-commentary.server.ts";
-import { getFixtureDetail } from "~/utils/fixture-detail.server.ts";
+// import { getFixtureDetail } from "~/utils/fixture-detail.server.ts";
 import { hasFixtureHeadToHead } from "~/utils/fixture-h2h.server.ts";
 import { hasFixtureLineup } from "~/utils/fixture-lineup.server.ts";
 import { hasFixtureStats } from "~/utils/fixture-stats.server.ts";
@@ -31,7 +31,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 
   const [
     fixture,
-    fixtureDetail,
+    // fixtureDetail,
     hasStats,
     hasLineups,
     hasH2H,
@@ -39,7 +39,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     hasCommentaries,
   ] = await Promise.all([
     getFixture(id),
-    getFixtureDetail(id),
+    // getFixtureDetail(id),
     hasFixtureStats(id),
     hasFixtureLineup(id),
     hasFixtureHeadToHead(id),
@@ -49,7 +49,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 
   return json({
     fixture,
-    fixtureDetail,
+    // fixtureDetail,
     hasStats,
     hasLineups,
     hasH2H,
@@ -61,7 +61,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 export default function FixtureDetail() {
   const {
     fixture,
-    fixtureDetail,
+    // fixtureDetail,
     hasStats,
     hasLineups,
     hasH2H,
@@ -98,7 +98,7 @@ export default function FixtureDetail() {
                 <FixtureEventScore
                   // @ts-expect-error Date type issue
                   fixture={fixture}
-                  fixtureDetail={fixtureDetail}
+                  // fixtureDetail={fixtureDetail}
                 />
                 <FixtureEventTeam team={fixture.awayTeam} />
               </div>
