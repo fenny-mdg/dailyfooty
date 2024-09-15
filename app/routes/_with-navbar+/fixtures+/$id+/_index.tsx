@@ -6,5 +6,5 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 
   invariant(typeof id === "string", "Fixture id must be string");
 
-  return redirect(`/fixtures/${id}/events`);
+  return redirect(`/fixtures/${id}/stats`);
 };
