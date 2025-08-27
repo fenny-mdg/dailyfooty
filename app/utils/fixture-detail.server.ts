@@ -136,12 +136,9 @@ export const getFixtureDetail = async (id: FixtureDetailDTO["id"]) => {
   await db
     ?.collection<FixtureDetail>(fixtureCollectionName)
     .createIndex({ id: 1 }, { unique: true });
-  const res = await fixtureDetailCollection
-    ?.find({
-      id,
-    })
-    .toArray();
-  const fixtureDetail = res?.[0];
+  const fixtureDetail = await fixtureDetailCollection?.findOne({
+    id,
+  });
 
   if (!fixtureDetail?.pageProps?.initialEventData) {
     const fixture = await getFixture(id);

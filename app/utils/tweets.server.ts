@@ -9,13 +9,15 @@ type TweetFilter = {
   direction?: "asc" | "desc";
 };
 
+const tweetCollectionName = "tweets";
+
 export const getTweets = ({
   direction = "asc",
   page = 1,
   size = 10,
   sortBy = "tweetDate",
 }: TweetFilter) => {
-  const tweetCollection = db?.collection("tweets");
+  const tweetCollection = db?.collection(tweetCollectionName);
 
   return tweetCollection
     ?.find(
@@ -30,13 +32,13 @@ export const getTweets = ({
 };
 
 export const countTweets = () => {
-  const tweetCollection = db?.collection("tweets");
+  const tweetCollection = db?.collection(tweetCollectionName);
 
   return tweetCollection?.countDocuments();
 };
 
 export const getLatestTweets = () => {
-  const tweetCollection = db?.collection("tweets");
+  const tweetCollection = db?.collection(tweetCollectionName);
 
   return tweetCollection
     ?.find({ tweetImage: { $ne: null } }, { limit: 5, sort: { tweetDate: -1 } })
@@ -44,7 +46,7 @@ export const getLatestTweets = () => {
 };
 
 export const getTweet = (id: string) => {
-  const tweetCollection = db?.collection("tweets");
+  const tweetCollection = db?.collection(tweetCollectionName);
 
   return tweetCollection?.findOne({ _id: new ObjectId(id) });
 };
