@@ -33,3 +33,17 @@ export const getFixtureCommentaries = async (
 
   return formatFixtureCommentaries(fixtureCommentaries);
 };
+
+export const hasFixtureCommentaries = async (id: FixtureCommentaryDTO["id"]) => {
+  const fixtureCommentariesCollection = db?.collection<fixtureCommentaries>(
+    fixtureCommentariesCollectionName,
+  );
+  const fixtureCommentaries = await fixtureCommentariesCollection?.findOne(
+    {
+      id,
+    },
+    { projection: { _id: 1 } },
+  );
+
+  return Boolean(fixtureCommentaries);
+};

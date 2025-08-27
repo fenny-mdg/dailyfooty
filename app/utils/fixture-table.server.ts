@@ -29,3 +29,17 @@ export const getFixtureTable = async (id: FixtureTableDTO["id"]) => {
 
   return formatFixtureTable(fixtureTable);
 };
+
+export const hasFixtureTable = async (id: FixtureTableDTO["id"]) => {
+  const fixtureTableCollection = db?.collection<FixtureStats>(
+    fixtureTableCollectionName,
+  );
+  const fixtureTable = await fixtureTableCollection?.findOne(
+    {
+      id,
+    },
+    { projection: { _id: 1 } },
+  );
+
+  return Boolean(fixtureTable);
+};

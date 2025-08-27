@@ -42,3 +42,17 @@ export const getFixtureLineups = async (id: FixtureLineupDTO["id"]) => {
 
   return formatFixtureLineups(fixtureLineups);
 };
+
+export const hasFixtureLineup = async (id: FixtureLineups["id"]) => {
+  const fixtureLineupsCollection = db?.collection<FixtureLineups>(
+    fixtureLineupsCollectionName,
+  );
+  const fixtureLineup = await fixtureLineupsCollection?.findOne(
+    {
+      id,
+    },
+    { projection: { _id: 1 } },
+  );
+
+  return Boolean(fixtureLineup);
+};

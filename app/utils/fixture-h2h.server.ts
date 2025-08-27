@@ -15,38 +15,39 @@ const formatFixtureHeadToHead = (
 ): FixtureHeadToHeadDTO => ({
   id: fixtureHeadToHead.id,
   // @ts-expect-error some internal type issue
-  h2h: fixtureHeadToHead.pageProps.initialEventData?.event?.headToHead?.h2h
-    ?.map((h) => {
-      const { stage, events } = h;
-      return events.map((event) => ({
-        id: stage.stageId,
-        competition: {
+  h2h:
+    fixtureHeadToHead.pageProps.initialEventData?.event?.headToHead?.h2h
+      ?.map((h) => {
+        const { stage, events } = h;
+        return events.map((event) => ({
           id: stage.stageId,
-          name: stage.stageName,
-          tag: stage.stageCode,
-          countryName: stage.countryName,
-          countryTag: stage.countryId,
-          countryAltName: stage.countryId,
-        },
-        startDate: Number(event.startDateTimeString),
-        status: event.statusCode,
-        score: [event.homeScore, event.awayScore],
-        homeTeam: {
-          id: event.homeName,
-          img: event.homeSlug,
-          name: event.homeName,
-          abbreviation: event.homeName,
-        },
-        awayTeam: {
-          id: event.awayName,
-          img: event.awaySlug,
-          name: event.awayName,
-          abbreviation: event.awayName,
-        },
-        winner: event.winner?.toLowerCase(),
-      }));
-    })
-    ?.flat(Infinity) || [],
+          competition: {
+            id: stage.stageId,
+            name: stage.stageName,
+            tag: stage.stageCode,
+            countryName: stage.countryName,
+            countryTag: stage.countryId,
+            countryAltName: stage.countryId,
+          },
+          startDate: Number(event.startDateTimeString),
+          status: event.statusCode,
+          score: [event.homeScore, event.awayScore],
+          homeTeam: {
+            id: event.homeName,
+            img: event.homeSlug,
+            name: event.homeName,
+            abbreviation: event.homeName,
+          },
+          awayTeam: {
+            id: event.awayName,
+            img: event.awaySlug,
+            name: event.awayName,
+            abbreviation: event.awayName,
+          },
+          winner: event.winner?.toLowerCase(),
+        }));
+      })
+      ?.flat(Infinity) || [],
 });
 
 export const getFixtureHeadToHead = async (id: FixtureHeadToHeadDTO["id"]) => {
@@ -62,4 +63,18 @@ export const getFixtureHeadToHead = async (id: FixtureHeadToHeadDTO["id"]) => {
   }
 
   return formatFixtureHeadToHead(fixtureHeadToHead);
+};
+
+export const hasFixtureHeadToHead = async (id: FixtureHeadToHeadDTO["id"]) => {
+  const fixtureHeadToHeadCollection = db?.collection<FixtureHeadToHead>(
+    fixtureH2hCollectionName,
+  );
+  const fixtureHeadToHead = await fixtureHeadToHeadCollection?.findOne(
+    {
+      id,
+    },
+    { projection: { _id: 1 } },
+  );
+
+  return Boolean(fixtureHeadToHead);
 };
